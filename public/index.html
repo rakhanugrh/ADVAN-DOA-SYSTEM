@@ -8,9 +8,19 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
     .container { background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 30px; }
+    
+    /* Header & Logo */
     .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-    .header h1 { color: #e91e63; font-size: 24px; margin-bottom: 5px; }
-    .header p { color: #666; font-size: 14px; }
+    .logo-container { background: #e91e63; padding: 15px; border-radius: 8px; display: inline-block; margin-bottom: 15px; }
+    .logo-text { color: white; font-size: 28px; font-weight: 800; letter-spacing: 2px; }
+    .header h1 { color: #333; font-size: 20px; margin-bottom: 5px; }
+    .header p { color: #666; font-size: 13px; }
+    
+    /* Category Tabs */
+    .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 12px 8px; border: 1px solid #dcdfe6; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .tab-btn.active { background: #e91e63; color: white; border-color: #e91e63; }
+
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; }
@@ -28,13 +38,26 @@
 
   <div class="container">
     <div class="header">
-      <h1>ADVAN DOA SYSTEM</h1>
-      <p>Formulir Pengajuan Klaim Garansi DOA (Dead on Arrival)</p>
+      <div class="logo-container">
+        <div class="logo-text">ADVAN</div>
+      </div>
+      <h1>Formulir Pengajuan Klaim Garansi DOA</h1>
+      <p>Sistem Pelayanan Garansi Dead on Arrival</p>
+    </div>
+
+    <!-- Tab Pilihan Kategori Perangkat -->
+    <div class="category-tabs">
+      <div class="tab-btn active" onclick="selectCategory('Smartphone', this)">📱 Smartphone</div>
+      <div class="tab-btn" onclick="selectCategory('Tablet', this)">Tab</div>
+      <div class="tab-btn" onclick="selectCategory('Laptop', this)">💻 Laptop</div>
+      <div class="tab-btn" onclick="selectCategory('PC / AIO', this)">🖥️ PC / AIO</div>
     </div>
 
     <div id="alertBox" class="alert"></div>
 
     <form id="doaForm" enctype="multipart/form-data">
+      <input type="hidden" name="kategori" id="kategoriInput" value="Smartphone">
+
       <div class="form-group">
         <label>Nama Lengkap *</label>
         <input type="text" name="nama" required placeholder="Masukkan nama pemohon">
@@ -56,13 +79,9 @@
       </div>
 
       <div class="form-group">
-        <label>Pilih Model / Tipe Unit *</label>
-        <select name="tipeUnit" required>
-          <option value="">-- Pilih Tipe Unit --</option>
-          <option value="Workpro (Intel i5)">Workpro (Intel i5)</option>
-          <option value="Workplus (AMD Ryzen)">Workplus (AMD Ryzen)</option>
-          <option value="Soulmate">Soulmate</option>
-          <option value="AIO PC Series">AIO PC Series</option>
+        <label id="labelModel">Pilih Model Spesifik Smartphone *</label>
+        <select name="tipeUnit" id="tipeUnitSelect" required>
+          <!-- Option diisi dinamis dari JavaScript -->
         </select>
       </div>
 
@@ -77,9 +96,15 @@
       </div>
 
       <div class="form-group">
-        <label>Upload Bukti Foto/Lampiran (Maksimal 4MB total) *</label>
+        <label>Upload Foto Bukti Fisik (Maksimal 5 foto) *</label>
         <input type="file" name="files" multiple required accept="image/*">
-        <div class="note">* Pilih foto ukuran ringan agar tidak melebihi batas upload.</div>
+        <div class="note">* Tahan Ctrl / Shift untuk memilih hingga 5 foto.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Upload Video Bukti Kendala / Unboxing (Opsional / Maks 4MB)</label>
+        <input type="file" name="files" accept="video/*">
+        <div class="note">* Format video: MP4, MOV, atau AVI (disarankan ukuran kecil).</div>
       </div>
 
       <button type="submit" class="btn-submit" id="btnSubmit">Kirim Pengajuan Klaim DOA</button>
@@ -87,6 +112,32 @@
   </div>
 
   <script>
+    const models = {
+      'Smartphone': ['Advan GX', 'Advan G9 Pro', 'Advan Nasa Plus', 'Lainnya'],
+      'Tablet': ['Advan Tab VX', 'Advan Sketsa 2', 'Advan Tab Belajar', 'Lainnya'],
+      'Laptop': ['Workpro (Intel i5)', 'Workplus (AMD Ryzen)', 'Soulmate', '360 Stylus', 'Lainnya'],
+      'PC / AIO': ['AIO One PC', 'AIO PC Series', 'Lainnya']
+    };
+
+    function selectCategory(cat, element) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('kategoriInput').value = cat;
+      document.getElementById('labelModel').innerText = `Pilih Model Spesifik ${cat} *`;
+      
+      const select = document.getElementById('tipeUnitSelect');
+      select.innerHTML = '';
+      models[cat].forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        select.appendChild(opt);
+      });
+    }
+
+    // Set default category
+    selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
+
     const doaForm = document.getElementById('doaForm');
     const alertBox = document.getElementById('alertBox');
     const btnSubmit = document.getElementById('btnSubmit');
@@ -100,7 +151,6 @@
       const formData = new FormData(doaForm);
 
       try {
-        // Menggunakan path relatif agar langsung menembak ke Vercel Serverless
         const response = await fetch('/api/doa/submit', {
           method: 'POST',
           body: formData
@@ -113,6 +163,7 @@
           alertBox.innerHTML = `<b>Berhasil!</b> ${data.message}<br>Nomor Tiket Anda: <b>${data.noTiket}</b>`;
           alertBox.style.display = 'block';
           doaForm.reset();
+          selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
         } else {
           alertBox.className = 'alert alert-danger';
           alertBox.innerText = data.message || 'Gagal mengirim pengajuan.';
