@@ -9,23 +9,23 @@
     body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
     .container { background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 30px; }
     
-    /* Header & Logo */
+    /* Header & Logo Image */
     .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-    .logo-container { background: #e91e63; padding: 15px; border-radius: 8px; display: inline-block; margin-bottom: 15px; }
-    .logo-text { color: white; font-size: 28px; font-weight: 800; letter-spacing: 2px; }
+    .header img { max-height: 45px; width: auto; margin-bottom: 12px; }
     .header h1 { color: #333; font-size: 20px; margin-bottom: 5px; }
     .header p { color: #666; font-size: 13px; }
     
-    /* Category Tabs */
-    .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-    .tab-btn { padding: 12px 8px; border: 1px solid #dcdfe6; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; text-align: center; transition: all 0.2s; }
-    .tab-btn.active { background: #e91e63; color: white; border-color: #e91e63; }
-
+    /* Form & Category Tabs */
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; }
     .form-group textarea { resize: vertical; min-height: 80px; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2563eb; }
+
+    .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; margin-bottom: 18px; }
+    .tab-btn { padding: 10px 6px; border: 1px solid #dcdfe6; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .tab-btn.active { background: #e91e63; color: white; border-color: #e91e63; }
+
     .note { font-size: 11px; color: #888; margin-top: 4px; }
     .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 10px; }
     .btn-submit:hover { background: #1d4ed8; }
@@ -38,19 +38,9 @@
 
   <div class="container">
     <div class="header">
-      <div class="logo-container">
-        <div class="logo-text">ADVAN</div>
-      </div>
+      <img src="https://advandigital.org/wp-content/uploads/2023/03/logo-advan.png" alt="Logo Advan">
       <h1>Formulir Pengajuan Klaim Garansi DOA</h1>
       <p>Sistem Pelayanan Garansi Dead on Arrival</p>
-    </div>
-
-    <!-- Tab Pilihan Kategori Perangkat -->
-    <div class="category-tabs">
-      <div class="tab-btn active" onclick="selectCategory('Smartphone', this)">📱 Smartphone</div>
-      <div class="tab-btn" onclick="selectCategory('Tablet', this)">Tab</div>
-      <div class="tab-btn" onclick="selectCategory('Laptop', this)">💻 Laptop</div>
-      <div class="tab-btn" onclick="selectCategory('PC / AIO', this)">🖥️ PC / AIO</div>
     </div>
 
     <div id="alertBox" class="alert"></div>
@@ -76,6 +66,17 @@
       <div class="form-group">
         <label>No. WhatsApp *</label>
         <input type="tel" name="nowa" required placeholder="081234567890">
+      </div>
+
+      <!-- Kategori Perangkat (Tepat di bawah No. WhatsApp) -->
+      <div class="form-group">
+        <label>Pilih Kategori Perangkat *</label>
+        <div class="category-tabs">
+          <div class="tab-btn active" onclick="selectCategory('Smartphone', this)">📱 Smartphone</div>
+          <div class="tab-btn" onclick="selectCategory('Tablet', this)">Tab</div>
+          <div class="tab-btn" onclick="selectCategory('Laptop', this)">💻 Laptop</div>
+          <div class="tab-btn" onclick="selectCategory('PC / AIO', this)">🖥️ PC / AIO</div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -135,7 +136,7 @@
       });
     }
 
-    // Set default category
+    // Default category
     selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
 
     const doaForm = document.getElementById('doaForm');
