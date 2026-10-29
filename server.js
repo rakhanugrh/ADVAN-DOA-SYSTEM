@@ -16,7 +16,7 @@ app.use(cookieParser());
 // Menyajikan file statis dari folder public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Konfigurasi Multer Upload (Tmp storage untuk Vercel)
+// Konfigurasi Multer Upload (Penyimpanan sementara di Serverless Vercel)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = '/tmp/uploads';
@@ -60,7 +60,7 @@ const requireAdminAuth = (req, res, next) => {
 
 // --- ROUTE API ---
 
-// 1. Login Admin
+// 1. API Login Admin
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
@@ -71,7 +71,7 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Username atau password salah!' });
 });
 
-// 2. Submit Tiket DOA (User)
+// 2. API Submit Tiket DOA (User)
 app.post('/api/doa/submit', upload.array('files'), (req, res) => {
   try {
     const tickets = getTickets();
@@ -97,13 +97,13 @@ app.post('/api/doa/submit', upload.array('files'), (req, res) => {
   }
 });
 
-// 3. Get Semua Tiket (Admin)
+// 3. API Get Semua Tiket (Admin)
 app.get('/api/doa/tickets', requireAdminAuth, (req, res) => {
   const tickets = getTickets();
   res.json({ success: true, tickets });
 });
 
-// 4. Action Admin (Approve / Reject)
+// 4. API Action Admin (Approve / Reject)
 app.post('/api/doa/action', requireAdminAuth, (req, res) => {
   const { noTiket, action } = req.body;
   const tickets = getTickets();
