@@ -4,268 +4,127 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pengajuan Klaim Garansi DOA - ADVAN</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
+    .container { background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 30px; }
+    .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .header h1 { color: #e91e63; font-size: 24px; margin-bottom: 5px; }
+    .header p { color: #666; font-size: 14px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2563eb; }
+    .note { font-size: 11px; color: #888; margin-top: 4px; }
+    .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 10px; }
+    .btn-submit:hover { background: #1d4ed8; }
+    .alert { padding: 12px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
+    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-12 font-sans">
+<body>
 
-  <!-- BANNER HEADER ADVAN -->
-  <div class="w-full bg-[#E6007E] py-6 px-4 text-center shadow-md mb-8 flex justify-center items-center">
-    <img src="https://lowkerjakarta.id/wp-content/uploads/2025/05/Lowkerjakarta-Logo-Advan.jpg" alt="ADVAN Logo" class="h-16 md:h-20 object-contain rounded-lg drop-shadow">
-  </div>
-
-  <!-- CONTAINER FORM -->
-  <div class="max-w-xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg border">
-    <div class="border-b pb-4 mb-6 text-center">
-      <h1 class="text-2xl font-bold text-blue-700">Form Garansi DOA - ADVAN</h1>
-      <p class="text-xs text-gray-500 mt-1">Isi data di bawah ini untuk mengajukan klaim penggantian unit baru</p>
+  <div class="container">
+    <div class="header">
+      <h1>ADVAN DOA SYSTEM</h1>
+      <p>Formulir Pengajuan Klaim Garansi DOA (Dead on Arrival)</p>
     </div>
 
-    <form id="doaForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Nama Lengkap *</label>
-        <input type="text" id="nama" placeholder="Masukkan nama lengkap pemohon" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+    <div id="alertBox" class="alert"></div>
+
+    <form id="doaForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Nama Lengkap *</label>
+        <input type="text" name="nama" required placeholder="Masukkan nama pemohon">
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold mb-1 text-gray-700">Nama Perusahaan / Toko *</label>
-          <input type="text" id="perusahaan" placeholder="Contoh: PT Mulia / Toko Jaya" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1 text-gray-700">Kota Asal *</label>
-          <input type="text" id="kota" placeholder="Contoh: Jakarta Barat" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
+      <div class="form-group">
+        <label>Perusahaan / Dealer</label>
+        <input type="text" name="perusahaan" placeholder="Nama toko / perusahaan (opsional)">
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Alamat Lengkap *</label>
-        <textarea id="alamat" placeholder="Jalan, No. Bangunan, RT/RW, Kecamatan, Kelurahan..." class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" rows="2"></textarea>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" name="email" required placeholder="contoh@email.com">
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold mb-1 text-gray-700">No. WhatsApp Aktif *</label>
-          <input type="text" id="noWa" placeholder="08123456789" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1 text-gray-700">Email Pemohon *</label>
-          <input type="email" id="email" placeholder="contoh@domain.com" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-        </div>
+      <div class="form-group">
+        <label>No. WhatsApp *</label>
+        <input type="tel" name="nowa" required placeholder="081234567890">
       </div>
 
-      <!-- KATEGORI PRODUK -->
-      <div>
-        <label class="block text-xs font-semibold mb-2 text-gray-700">Pilih Kategori Produk *</label>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button type="button" onclick="selectCategory('Laptop')" id="btn-Laptop" class="category-btn border-2 p-3 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition bg-gray-50">
-            <span class="text-xl">💻</span>
-            <span class="text-xs font-bold text-gray-700">Laptop</span>
-          </button>
-          <button type="button" onclick="selectCategory('Tablet')" id="btn-Tablet" class="category-btn border-2 p-3 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition bg-gray-50">
-            <span class="text-xl">📱</span>
-            <span class="text-xs font-bold text-gray-700">Tablet</span>
-          </button>
-          <button type="button" onclick="selectCategory('Smartphone')" id="btn-Smartphone" class="category-btn border-2 p-3 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition bg-gray-50">
-            <span class="text-xl">📞</span>
-            <span class="text-xs font-bold text-gray-700">Smartphone</span>
-          </button>
-          <button type="button" onclick="selectCategory('PC')" id="btn-PC" class="category-btn border-2 p-3 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition bg-gray-50">
-            <span class="text-xl">🖥️</span>
-            <span class="text-xs font-bold text-gray-700">PC / AIO</span>
-          </button>
-        </div>
-        <input type="hidden" id="tipeProduk" value="">
-      </div>
-
-      <!-- DROPDOWN MODEL SPESIFIK -->
-      <div id="modelContainer" class="hidden transition-all duration-300">
-        <label class="block text-xs font-semibold mb-1 text-blue-700" id="labelModel">Model Spesifik Produk *</label>
-        <select id="modelProduk" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-          <option value="">-- Pilih Model --</option>
+      <div class="form-group">
+        <label>Pilih Model / Tipe Unit *</label>
+        <select name="tipeUnit" required>
+          <option value="">-- Pilih Tipe Unit --</option>
+          <option value="Workpro (Intel i5)">Workpro (Intel i5)</option>
+          <option value="Workplus (AMD Ryzen)">Workplus (AMD Ryzen)</option>
+          <option value="Soulmate">Soulmate</option>
+          <option value="AIO PC Series">AIO PC Series</option>
         </select>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Serial Number (SN) *</label>
-        <input type="text" id="serialNumber" placeholder="Contoh: ADV12345678" class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+      <div class="form-group">
+        <label>Serial Number (SN) *</label>
+        <input type="text" name="snUnit" required placeholder="Masukkan SN unit">
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Detail Kendala DOA *</label>
-        <textarea id="catatan" placeholder="Jelaskan kondisi fisik / kerusakan saat pertama unboxing..." class="w-full border p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" rows="3"></textarea>
+      <div class="form-group">
+        <label>Detail Kendala DOA *</label>
+        <textarea name="keluhan" required placeholder="Jelaskan detail kerusakan unit..."></textarea>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Upload Foto Bukti Fisik (Maksimal 5 foto) *</label>
-        <input type="file" id="fotoProduk" accept="image/*" multiple class="w-full border p-2 rounded-lg text-sm text-gray-600 bg-gray-50">
-        <span class="text-[10px] text-gray-400 mt-1 block">* Tahan Ctrl / Shift untuk memilih hingga 5 foto.</span>
+      <div class="form-group">
+        <label>Upload Bukti Foto/Lampiran (Maksimal 4MB total) *</label>
+        <input type="file" name="files" multiple required accept="image/*">
+        <div class="note">* Pilih foto ukuran ringan agar tidak melebihi batas upload.</div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold mb-1 text-gray-700">Upload Video Bukti Kendala / Unboxing (Wajib minimal 1, Maksimal 2) *</label>
-        <input type="file" id="videoProduk" accept="video/*" multiple class="w-full border p-2 rounded-lg text-sm text-gray-600 bg-gray-50">
-        <span class="text-[10px] text-gray-400 mt-1 block">* Format video: MP4, MOV, atau AVI (Minimal 1 video).</span>
-      </div>
-
-      <div id="statusMsg" class="hidden p-4 rounded-lg text-sm font-semibold border flex items-center gap-3 transition-all duration-300"></div>
-
-      <button type="submit" id="btnSubmit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 text-sm shadow transition">
-        Kirim Pengajuan Klaim DOA
-      </button>
+      <button type="submit" class="btn-submit" id="btnSubmit">Kirim Pengajuan Klaim DOA</button>
     </form>
   </div>
 
   <script>
-    const modelOptions = {
-      Laptop: ["Workplus (AMD Ryzen 5)", "Workplus (AMD Ryzen 7)", "Workpro (Intel i5)", "Soulmate 14", "PixelWar (Gaming)"],
-      Tablet: ["Tab VX", "Tab VX Lite", "Sketsa 2", "Sketsa 3", "Tab A8"],
-      Smartphone: ["Advan G9 Pro", "Advan GX", "Advan Nasa Pro", "Advan S5E"],
-      PC: ["Advan AIO OnePC", "Advan Desktop PC Center", "Advan Mini PC Workstation"]
-    };
+    const doaForm = document.getElementById('doaForm');
+    const alertBox = document.getElementById('alertBox');
+    const btnSubmit = document.getElementById('btnSubmit');
 
-    function selectCategory(category) {
-      document.getElementById('tipeProduk').value = category;
-
-      document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-400');
-        btn.classList.add('bg-gray-50', 'border-gray-200');
-      });
-
-      const selectedBtn = document.getElementById(`btn-${category}`);
-      if (selectedBtn) {
-        selectedBtn.classList.remove('bg-gray-50', 'border-gray-200');
-        selectedBtn.classList.add('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-400');
-      }
-
-      const modelContainer = document.getElementById('modelContainer');
-      const modelSelect = document.getElementById('modelProduk');
-      const labelModel = document.getElementById('labelModel');
-
-      labelModel.innerText = `Pilih Model Spesifik ${category} *`;
-      modelSelect.innerHTML = `<option value="">-- Pilih Model ${category} --</option>`;
-
-      if (modelOptions[category]) {
-        modelOptions[category].forEach(model => {
-          const opt = document.createElement('option');
-          opt.value = model;
-          opt.textContent = model;
-          modelSelect.appendChild(opt);
-        });
-      }
-
-      modelContainer.classList.remove('hidden');
-    }
-
-    document.getElementById('doaForm').addEventListener('submit', async (e) => {
+    doaForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const statusMsg = document.getElementById('statusMsg');
-      statusMsg.classList.add('hidden');
+      alertBox.style.display = 'none';
+      btnSubmit.innerText = 'Mengirim Data...';
+      btnSubmit.disabled = true;
 
-      const nama = document.getElementById('nama').value.trim();
-      const perusahaan = document.getElementById('perusahaan').value.trim();
-      const alamat = document.getElementById('alamat').value.trim();
-      const kota = document.getElementById('kota').value.trim();
-      const noWa = document.getElementById('noWa').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const tipeProduk = document.getElementById('tipeProduk').value.trim();
-      const modelProduk = document.getElementById('modelProduk').value.trim();
-      const serialNumber = document.getElementById('serialNumber').value.trim();
-      const catatan = document.getElementById('catatan').value.trim();
-      const fotoFiles = document.getElementById('fotoProduk').files;
-      const videoFiles = document.getElementById('videoProduk').files;
-
-      if (!nama || !perusahaan || !alamat || !kota || !noWa || !email || !tipeProduk || !modelProduk || !serialNumber || !catatan) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>❌</span> <div><strong>PENGAJUAN GAGAL!</strong><br>Semua kolom input wajib diisi.</div>`;
-        statusMsg.classList.remove('hidden');
-        return;
-      }
-
-      if (videoFiles.length === 0) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>❌</span> <div><strong>PENGAJUAN GAGAL!</strong><br>Minimal 1 video unboxing/kendala WAJIB diunggah.</div>`;
-        statusMsg.classList.remove('hidden');
-        return;
-      }
-
-      if (fotoFiles.length > 5) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>⚠️</span> <div><strong>BATAS FOTO TERLAMPAUI!</strong><br>Foto maksimal 5 file.</div>`;
-        statusMsg.classList.remove('hidden');
-        return;
-      }
-
-      if (videoFiles.length > 2) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>⚠️</span> <div><strong>BATAS VIDEO TERLAMPAUI!</strong><br>Video maksimal 2 file.</div>`;
-        statusMsg.classList.remove('hidden');
-        return;
-      }
-
-      if (!email.includes('@')) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>❌</span> <div><strong>EMAIL TIDAK VALID!</strong><br>Format email harus mengandung '@'.</div>`;
-        statusMsg.classList.remove('hidden');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('nama', nama);
-      formData.append('perusahaan', perusahaan);
-      formData.append('alamat', alamat);
-      formData.append('kota', kota);
-      formData.append('noWa', noWa);
-      formData.append('email', email);
-      formData.append('tipeProduk', tipeProduk);
-      formData.append('modelProduk', modelProduk);
-      formData.append('serialNumber', serialNumber);
-      formData.append('catatan', catatan);
-
-      for (let i = 0; i < fotoFiles.length; i++) {
-        formData.append('fotoProduk', fotoFiles[i]);
-      }
-
-      for (let i = 0; i < videoFiles.length; i++) {
-        formData.append('videoProduk', videoFiles[i]);
-      }
-
-      const btn = document.getElementById('btnSubmit');
-      btn.innerText = "Mengirim Pengajuan & Upload File...";
-      btn.disabled = true;
+      const formData = new FormData(doaForm);
 
       try {
-        const res = await fetch('/api/doa/submit', {
+        // Menggunakan path relatif agar langsung menembak ke Vercel Serverless
+        const response = await fetch('/api/doa/submit', {
           method: 'POST',
           body: formData
         });
 
-        const result = await res.json();
+        const data = await response.json();
 
-        if (result.success) {
-          statusMsg.className = "p-4 rounded-lg bg-green-50 border-green-300 text-green-800 text-xs font-semibold flex items-center gap-2";
-          statusMsg.innerHTML = `<span>🎉</span> <div><strong>PENGAJUAN BERHASIL!</strong><br>${result.message}</div>`;
-          statusMsg.classList.remove('hidden');
-          document.getElementById('doaForm').reset();
-          
-          document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.classList.remove('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-400');
-            btn.classList.add('bg-gray-50', 'border-gray-200');
-          });
-          document.getElementById('tipeProduk').value = '';
-          document.getElementById('modelContainer').classList.add('hidden');
-
+        if (data.success) {
+          alertBox.className = 'alert alert-success';
+          alertBox.innerHTML = `<b>Berhasil!</b> ${data.message}<br>Nomor Tiket Anda: <b>${data.noTiket}</b>`;
+          alertBox.style.display = 'block';
+          doaForm.reset();
         } else {
-          statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-          statusMsg.innerHTML = `<span>⚠️</span> <div><strong>GAGAL MEMPROSES!</strong><br>${result.message}</div>`;
-          statusMsg.classList.remove('hidden');
+          alertBox.className = 'alert alert-danger';
+          alertBox.innerText = data.message || 'Gagal mengirim pengajuan.';
+          alertBox.style.display = 'block';
         }
       } catch (err) {
-        statusMsg.className = "p-4 rounded-lg bg-red-50 border-red-300 text-red-800 text-xs font-semibold flex items-center gap-2";
-        statusMsg.innerHTML = `<span>⚠️</span> <div><strong>KONEKSI ERROR!</strong><br>Tidak dapat terhubung ke server.</div>`;
-        statusMsg.classList.remove('hidden');
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<b>KONEKSI ERROR!</b><br>Tidak dapat terhubung ke server atau ukuran file terlalu besar.';
+        alertBox.style.display = 'block';
       } finally {
-        btn.innerText = "Kirim Pengajuan Klaim DOA";
-        btn.disabled = false;
+        btnSubmit.innerText = 'Kirim Pengajuan Klaim DOA';
+        btnSubmit.disabled = false;
       }
     });
   </script>
