@@ -1,0 +1,24 @@
+[
+  {
+    "noTiket": "DOA-770082",
+    "nama": "rakha nugraha",
+    "perusahaan": "sinar mas",
+    "alamat": "sgeqipfgpqwhr",
+    "kota": "jakarta",
+    "email": "rakhanugrh0312@gmail.com",
+    "noWa": "123456789",
+    "tipeProduk": "Smartphone",
+    "modelProduk": "Advan G9 Pro",
+    "serialNumber": "12345678",
+    "catatan": "vs sgarucgqog rbg",
+    "fotoUrls": [
+      "/uploads/1793176769737-996917067.jpg"
+    ],
+    "videoUrls": [
+      "/uploads/1793176769744-605076664.mp4"
+    ],
+    "status": "APPROVED",
+    "createdAt": "28/10/2026, 15.39.30",
+    "alasanStatus": "Memenuhi syarat garansi DOA"
+  }
+]
