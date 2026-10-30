@@ -1,188 +1,152 @@
 const express = require('express');
-const path = require('path');
+const cors = require('cors');
 const multer = require('multer');
-const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
-const nodemailer = require('nodemailer');
-const helmet = require('helmet');
 const { createClient } = require('@supabase/supabase-js');
+const cloudinary = require('cloudinary').v2;
+const nodemailer = require('nodemailer');
+const path = require('path');
 
 const app = express();
-const JWT_SECRET = 'advan-doa-secret-key-2026';
+const PORT = process.env.PORT || 3000;
 
-// Konfigurasi Supabase
-const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co'; 
-const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1'; 
+// ==========================================
+// 1. KONFIGURASI KREDENSIAL & ENVIRONMENT
+// ==========================================
+
+// Supabase Configuration
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://YOUR_SUPABASE_PROJECT.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_ANON_KEY';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Konfigurasi Transporter Nodemailer (Gmail SMTP)
-const SENDER_EMAIL = 'emailkamu@gmail.com'; 
-const SENDER_APP_PASSWORD = 'abcd efgh ijkl mnop'; 
+// Cloudinary Configuration (Menggunakan Root Key kamu)
+cloudinary.config({
+  cloud_name: 'nb1uorww',
+  api_key: '478548514282719',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'PwUq1jaEm2TRcK_6YEDqJyzjLbw'
+});
 
+// Nodemailer SMTP Configuration
+const SENDER_EMAIL = process.env.EMAIL_USER || 'admin.support@advan.co.id';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth: { user: SENDER_EMAIL, pass: SENDER_APP_PASSWORD }
+  auth: {
+    user: SENDER_EMAIL,
+    pass: process.env.EMAIL_PASS || 'YOUR_GMAIL_APP_PASSWORD'
+  }
 });
 
-// ==========================================
-// FITUR CYBER SECURITY
-// ==========================================
+// Multer Storage (Memory Storage untuk buffer upload langsung ke Cloudinary)
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 } // Batas max 100MB per file
+});
 
-// 1. HTTP Security Headers
-app.use(helmet({ contentSecurityPolicy: false }));
-
-// 2. Helper Validator Magic Byte Biner (Sanitasi File Jahat / Malware)
-const isValidFileMagicByte = (buffer) => {
-  const hex = buffer.toString('hex', 0, 8).toUpperCase();
-  const isJPEG = hex.startsWith('FFD8FF');
-  const isPNG = hex.startsWith('89504E47');
-  const isWEBP = hex.startsWith('52494646');
-  const isMP4orMOV = hex.includes('66747970'); // 'ftyp' header
-  
-  return isJPEG || isPNG || isWEBP || isMP4orMOV;
-};
-
-// Middleware Utama
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cookieParser());
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Multer Storage Memory
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 4.5 * 1024 * 1024 }
-});
+// ==========================================
+// 2. HELPER FUNCTIONS
+// ==========================================
 
-// Middleware Authentikasi Admin
-const requireAdminAuth = (req, res, next) => {
-  const token = req.cookies.admin_token;
-  if (!token) return res.status(401).json({ success: false, message: 'Silakan login.' });
-  try {
-    req.admin = jwt.verify(token, JWT_SECRET);
-    next();
-  } catch (err) {
-    res.status(403).json({ success: false, message: 'Token tidak valid.' });
-  }
+// Helper Upload Stream ke Cloudinary
+const uploadToCloudinary = (fileBuffer, folderName) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folderName,
+        resource_type: 'auto' // Otomatis mendeteksi Gambar maupun Video
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    uploadStream.end(fileBuffer);
+  });
 };
 
-// Routing Halaman Depan
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Helper Template Email HTML Pengajuan Baru
+const generateSubmitEmailHTML = (noTiket, body) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .header { background-color: #0f172a; padding: 25px; text-align: center; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; }
+        .ticket-badge { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .detail-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0; }
+        .detail-row { padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-size: 14px; }
+        .footer { background-color: #f1f5f9; text-align: center; padding: 15px; font-size: 12px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2 style="color: #ffffff; margin:0;">ADVAN GARANSI DOA</h2>
+        </div>
+        <div class="content">
+          <h2>Halo, ${body.nama}! 👋</h2>
+          <p>Terima kasih telah mengajukan klaim garansi <b>Dead on Arrival (DOA)</b>. Pengajuan Anda telah kami terima dan sedang diproses oleh tim Quality Control (QC).</p>
+          
+          <div class="detail-box">
+            <div class="detail-row"><b>Nomor Tiket:</b> <span class="ticket-badge">${noTiket}</span></div>
+            <div class="detail-row"><b>Perusahaan/Toko:</b> ${body.perusahaan || '-'}</div>
+            <div class="detail-row"><b>Tipe Unit:</b> ${body.tipeUnit}</div>
+            <div class="detail-row"><b>Serial Number (SN):</b> ${body.snUnit}</div>
+            <div class="detail-row"><b>Kategori Kendala:</b> ${body.kategori}</div>
+          </div>
 
-// 1. API Login Admin (TANPA LIMITER & Direct Check admin/admin123)
-app.post('/api/admin/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
+          <p><b>Keluhan yang Dilaporkan:</b><br><i>"${body.keluhan}"</i></p>
 
-    // A. Cek Akun Default Hardcoded (Pasti Lolos)
-    if (username === 'admin' && password === 'admin123') {
-      const token = jwt.sign({ username: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
-      res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
-      return res.json({ success: true, message: 'Login berhasil!' });
-    }
+          <p>Tim kami akan melakukan verifikasi fisik dan fungsional unit. Update status akan kami kirimkan ke email ini secara berkala.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 ADVAN Indonesia - Service Center & Quality Control
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
 
-    // B. Cek Akun Terdaftar di Supabase
-    const { data: user } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password)
-      .single();
+// ==========================================
+// 3. API ENDPOINTS
+// ==========================================
 
-    if (user) {
-      const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '1d' });
-      res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
-      return res.json({ success: true, message: 'Login berhasil!' });
-    }
-
-    res.status(401).json({ success: false, message: 'Username atau password salah!' });
-  } catch (err) {
-    res.status(401).json({ success: false, message: 'Username atau password salah!' });
-  }
-});
-
-// 2. API Register Admin Baru
-app.post('/api/admin/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ success: false, message: 'Username dan password wajib diisi!' });
-    }
-
-    const { data: existingUser } = await supabase
-      .from('admin_users')
-      .select('username')
-      .eq('username', username)
-      .single();
-
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: 'Username sudah terdaftar!' });
-    }
-
-    const { error: insertError } = await supabase
-      .from('admin_users')
-      .insert([{ username, password }]);
-
-    if (insertError) throw insertError;
-    res.json({ success: true, message: 'Akun admin berhasil dibuat! Silakan login.' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal membuat akun admin.' });
-  }
-});
-
-// 3. API Submit Tiket (User) + Security Check + Email Notification
+// Endpoint Submit Form Klaim DOA
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
     const fileUrls = [];
 
+    // 1. Upload File (Foto/Video) ke Cloudinary jika ada
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-
-        // Validasi Biner File (Sanitasi Malware)
-        if (!isValidFileMagicByte(file.buffer)) {
-          return res.status(400).json({ 
-            success: false, 
-            message: `⚠️ FILE DITOLAK! File '${file.originalname}' terdeteksi berpotensi berbahaya.` 
-          });
-        }
-
-        const fileExt = path.extname(file.originalname).toLowerCase();
-        const fileName = `${noTiket}/${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
-
-        let mimeType = file.mimetype;
-        if (fileExt === '.mp4') mimeType = 'video/mp4';
-        else if (fileExt === '.mov') mimeType = 'video/quicktime';
-        else if (fileExt === '.webm') mimeType = 'video/webm';
-
-        const { error: uploadError } = await supabase.storage
-          .from('doa-files')
-          .upload(fileName, file.buffer, {
-            contentType: mimeType,
-            upsert: true
-          });
-
-        if (!uploadError) {
-          const { data: publicUrlData } = supabase.storage
-            .from('doa-files')
-            .getPublicUrl(fileName);
-          
-          if (publicUrlData && publicUrlData.publicUrl) {
-            fileUrls.push({ url: publicUrlData.publicUrl, type: mimeType });
-          }
-        }
+        const cloudResult = await uploadToCloudinary(file.buffer, `advan-doa/${noTiket}`);
+        fileUrls.push({
+          url: cloudResult.secure_url,
+          public_id: cloudResult.public_id,
+          resource_type: cloudResult.resource_type,
+          created_at: new Date()
+        });
       }
     }
 
-    // Simpan ke database Supabase
+    // 2. Simpan Data Log Teks ke Supabase
     const { error: dbError } = await supabase
       .from('doa_tickets')
       .insert([{
         no_tiket: noTiket,
         nama: req.body.nama,
-        perusahaan: req.body.perusahaan,
+        perusahaan: req.body.perusahaan || null,
         email: req.body.email,
         nowa: req.body.nowa,
         kategori: req.body.kategori,
@@ -195,39 +159,34 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
 
     if (dbError) throw dbError;
 
-    // Kirim Email Konfirmasi Otomatis ke User
-    if (req.body.email && SENDER_EMAIL !== 'emailkamu@gmail.com') {
+    // 3. Kirim Email Konfirmasi Otomatis ke User
+    if (req.body.email) {
       const mailOptions = {
-        from: `"Advan DOA Service Center" <${SENDER_EMAIL}>`,
+        from: `"Advan Service Center" <${SENDER_EMAIL}>`,
         to: req.body.email,
-        subject: `[Klaim Garansi DOA] Konfirmasi Pengajuan Tiket #${noTiket}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f9;">
-            <div style="max-width: 600px; background: white; padding: 25px; border-radius: 8px; margin: auto;">
-              <h2 style="color: #2563eb; margin-bottom: 10px;">Pengajuan Klaim Garansi DOA Diterima</h2>
-              <p>Halo <b>${req.body.nama}</b>,</p>
-              <p>Pengajuan klaim garansi Dead on Arrival (DOA) Anda telah berhasil dicatat.</p>
-              <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                <p style="margin: 4px 0;"><b>Nomor Tiket:</b> <span style="color: #2563eb;">${noTiket}</span></p>
-                <p style="margin: 4px 0;"><b>Model Unit:</b> ${req.body.tipeUnit}</p>
-                <p style="margin: 4px 0;"><b>Serial Number:</b> ${req.body.snUnit}</p>
-              </div>
-              <p>Tim QC Advan akan memverifikasi klaim Anda secepatnya.</p>
-            </div>
-          </div>`
+        subject: `[Klaim Garansi DOA] Tiket Berhasil Dibuat #${noTiket}`,
+        html: generateSubmitEmailHTML(noTiket, req.body)
       };
-      transporter.sendMail(mailOptions).catch(err => console.error('Gagal Kirim Email:', err));
+      
+      transporter.sendMail(mailOptions, (err) => {
+        if (err) console.error('Gagal mengirim email konfirmasi:', err);
+      });
     }
 
-    res.json({ success: true, message: 'Pengajuan berhasil dikirim!', noTiket });
+    res.json({ 
+      success: true, 
+      message: 'Pengajuan tiket berhasil dikirim!', 
+      noTiket 
+    });
+
   } catch (err) {
     console.error('Submit Error:', err);
-    res.status(500).json({ success: false, message: 'Gagal menyimpan data pengajuan.' });
+    res.status(500).json({ success: false, message: 'Gagal memproses pengajuan: ' + err.message });
   }
 });
 
-// 4. API Ambil Data Tiket (Admin)
-app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
+// Endpoint Get All Tickets (Untuk Dashboard Admin)
+app.get('/api/doa/tickets', async (req, res) => {
   try {
     const { data: tickets, error } = await supabase
       .from('doa_tickets')
@@ -237,47 +196,84 @@ app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, tickets });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal mengambil data tiket.' });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// 5. API Ubah Status (Approve/Reject) + Notification Email
-app.post('/api/doa/action', requireAdminAuth, async (req, res) => {
+// Endpoint Action Status (Approved / Rejected) oleh Admin
+app.post('/api/doa/action', async (req, res) => {
+  const { noTiket, statusBaru, emailUser, namaUser } = req.body;
+
   try {
-    const { noTiket, action } = req.body;
-    const statusBaru = action === 'approve' ? 'Approved' : 'Rejected';
-
-    const { data: ticket, error: fetchErr } = await supabase
+    // 1. Update Status di Supabase Database
+    const { error } = await supabase
       .from('doa_tickets')
-      .update({ status: statusBaru })
-      .eq('no_tiket', noTiket)
-      .select()
-      .single();
+      .update({ status: statusBaru, updated_at: new Date() })
+      .eq('no_tiket', noTiket);
 
-    if (fetchErr) throw fetchErr;
+    if (error) throw error;
 
-    // Send Email Status Update
-    if (ticket && ticket.email && SENDER_EMAIL !== 'emailkamu@gmail.com') {
-      const statusColor = statusBaru === 'Approved' ? '#10b981' : '#ef4444';
+    // 2. Kirim Email Notification Update Status
+    if (emailUser) {
+      const isApproved = statusBaru === 'Approved';
       const mailOptions = {
-        from: `"Advan DOA Service Center" <${SENDER_EMAIL}>`,
-        to: ticket.email,
+        from: `"Advan Service Center" <${SENDER_EMAIL}>`,
+        to: emailUser,
         subject: `[Update Status DOA] Tiket #${noTiket} - ${statusBaru}`,
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>Update Status Klaim Garansi DOA</h2>
-            <p>Halo <b>${ticket.nama}</b>, tiket pengajuan #${noTiket} Anda saat ini berstatus: <b style="color:${statusColor}">${statusBaru.toUpperCase()}</b>.</p>
-          </div>`
+            <h3>Halo, ${namaUser}</h3>
+            <p>Pengajuan Garansi DOA Anda dengan tiket <b>#${noTiket}</b> telah diperbarui.</p>
+            <p style="font-size: 16px;"><b>STATUS: <span style="color: ${isApproved ? 'green' : 'red'};">${statusBaru.toUpperCase()}</span></b></p>
+            <p>${isApproved ? 'Silakan lanjutkan pengiriman unit sesuai instruksi tim kami.' : 'Pengajuan Anda ditolak berdasarkan evaluasi tim QC.'}</p>
+          </div>
+        `
       };
-      transporter.sendMail(mailOptions).catch(err => console.error('Gagal Kirim Status Email:', err));
+      transporter.sendMail(mailOptions);
     }
 
-    res.json({ success: true, message: `Status tiket diubah menjadi ${statusBaru}` });
+    res.json({ success: true, message: `Status tiket #${noTiket} berhasil diubah menjadi ${statusBaru}` });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal mengubah status.' });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-module.exports = app;
+// ==========================================
+// 4. AUTO-DELETE MEDIA HAPUS MEDIA > 30 HARI
+// ==========================================
+// Menjalankan tugas pembersihan setiap 24 jam sekali
+setInterval(async () => {
+  try {
+    console.log('🧹 Menjalankan tugas rutin pembersihan media lama...');
+    const batasWaktu = new Date();
+    batasWaktu.setDate(batasWaktu.getDate() - 30); // Batas 30 Hari yang lalu
+
+    // Ambil data tiket lama yang melebihi 30 hari dari Supabase
+    const { data: oldTickets } = await supabase
+      .from('doa_tickets')
+      .select('no_tiket, file_urls')
+      .lt('created_at', batasWaktu.toISOString());
+
+    if (oldTickets && oldTickets.length > 0) {
+      for (const ticket of oldTickets) {
+        if (ticket.file_urls) {
+          const files = JSON.parse(ticket.file_urls);
+          for (const file of files) {
+            if (file.public_id) {
+              // Hapus media fisik dari Cloudinary berdasarkan resource_type
+              await cloudinary.uploader.destroy(file.public_id, { resource_type: file.resource_type || 'image' });
+            }
+          }
+        }
+      }
+      console.log(`✅ Berhasil membersihkan media dari ${oldTickets.length} tiket lama.`);
+    }
+  } catch (err) {
+    console.error('❌ Gagal menjalankan auto-cleanup:', err);
+  }
+}, 24 * 60 * 60 * 1000); // 24 Jam
+
+// Run Server
+app.listen(PORT, () => {
+  console.log(`🚀 Server Advan DOA berjalan di port ${PORT}`);
+});
