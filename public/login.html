@@ -6,42 +6,44 @@
   <title>Login Admin QC - ADVAN DOA</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     
-    .login-card { background: #ffffff; width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
+    .login-card { background: #1e293b; width: 100%; max-width: 420px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); overflow: hidden; border: 1px solid #334155; }
     
     /* Header Banner Putih dengan Logo ADVAN Resmi */
     .header-banner { 
       background: #ffffff; 
-      padding: 30px 20px; 
+      padding: 25px 20px; 
       display: flex; 
       justify-content: center; 
       align-items: center; 
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid #334155;
     }
     .header-banner img { 
-      max-height: 55px; 
+      max-height: 50px; 
       width: auto; 
       display: block; 
     }
 
     .card-body { padding: 30px; }
     .title-box { text-align: center; margin-bottom: 25px; }
-    .title-box h2 { font-size: 20px; color: #1e293b; margin-bottom: 6px; font-weight: 700; }
-    .title-box p { font-size: 13px; color: #64748b; }
+    .title-box h2 { font-size: 20px; color: #38bdf8; margin-bottom: 6px; font-weight: 700; }
+    .title-box p { font-size: 13px; color: #94a3b8; }
 
     .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
     .form-group input { 
       width: 100%; 
       padding: 12px 14px; 
-      border: 1px solid #cbd5e1; 
+      background: #0f172a;
+      border: 1px solid #334155; 
       border-radius: 8px; 
       font-size: 14px; 
+      color: #f8fafc;
       outline: none; 
       transition: border-color 0.2s;
     }
-    .form-group input:focus { border-color: #2563eb; }
+    .form-group input:focus { border-color: #38bdf8; }
 
     .btn-login { 
       width: 100%; 
@@ -59,7 +61,7 @@
     .btn-login:hover { background: #1d4ed8; }
 
     .alert { padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
-    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .alert-danger { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
   </style>
 </head>
 <body>
