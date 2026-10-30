@@ -4,63 +4,46 @@ const fs = require('fs');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const JWT_SECRET = 'advan-doa-secret-key-2026';
+
+// Konfigurasi Supabase
+const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co'; 
+const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1'; 
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-// Menyajikan file statis dari folder public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Konfigurasi Multer Upload (Penyimpanan sementara di Serverless Vercel)
+// Multer Upload untuk Vercel Serverless
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = '/tmp/uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
 
-// Helper membaca data tiket lokal
-const getTickets = () => {
-  const filePath = path.join(__dirname, 'doa_tickets.json');
-  if (!fs.existsSync(filePath)) return [];
-  try {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data || '[]');
-  } catch (err) {
-    return [];
-  }
-};
-
-// Middleware Autentikasi Admin
+// Middleware Admin Auth
 const requireAdminAuth = (req, res, next) => {
   const token = req.cookies.admin_token;
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Akses ditolak. Silakan login.' });
-  }
+  if (!token) return res.status(401).json({ success: false, message: 'Silakan login.' });
   try {
-    const verified = jwt.verify(token, JWT_SECRET);
-    req.admin = verified;
+    req.admin = jwt.verify(token, JWT_SECRET);
     next();
   } catch (err) {
     res.status(403).json({ success: false, message: 'Token tidak valid.' });
   }
 };
 
-// --- ROUTE API ---
-
-// 1. API Login Admin
+// API 1: Login Admin
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
@@ -71,56 +54,66 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Username atau password salah!' });
 });
 
-// 2. API Submit Tiket DOA (User)
-app.post('/api/doa/submit', upload.array('files'), (req, res) => {
+// API 2: Submit Tiket (User) -> Simpan Ke Supabase
+app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
-    const tickets = getTickets();
     const noTiket = 'DOA-' + Date.now();
-    
-    const newTicket = {
-      noTiket,
-      nama: req.body.nama,
-      perusahaan: req.body.perusahaan,
-      email: req.body.email,
-      nowa: req.body.nowa,
-      tipeUnit: req.body.tipeUnit,
-      snUnit: req.body.snUnit,
-      keluhan: req.body.keluhan,
-      status: 'Pending',
-      tanggal: new Date().toISOString()
-    };
+    const { data, error } = await supabase
+      .from('doa_tickets')
+      .insert([{
+        no_tiket: noTiket,
+        nama: req.body.nama,
+        perusahaan: req.body.perusahaan,
+        email: req.body.email,
+        nowa: req.body.nowa,
+        kategori: req.body.kategori,
+        tipe_unit: req.body.tipeUnit,
+        sn_unit: req.body.snUnit,
+        keluhan: req.body.keluhan,
+        status: 'Pending'
+      }]);
 
-    tickets.push(newTicket);
+    if (error) throw error;
     res.json({ success: true, message: 'Pengajuan berhasil dikirim!', noTiket });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal memproses pengajuan.' });
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Gagal menyimpan ke database.' });
   }
 });
 
-// 3. API Get Semua Tiket (Admin)
-app.get('/api/doa/tickets', requireAdminAuth, (req, res) => {
-  const tickets = getTickets();
-  res.json({ success: true, tickets });
-});
+// API 3: Get Tiket (Admin) -> Ambil Dari Supabase
+app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
+  try {
+    const { data: tickets, error } = await supabase
+      .from('doa_tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-// 4. API Action Admin (Approve / Reject)
-app.post('/api/doa/action', requireAdminAuth, (req, res) => {
-  const { noTiket, action } = req.body;
-  const tickets = getTickets();
-  const ticket = tickets.find(t => t.noTiket === noTiket);
-
-  if (!ticket) {
-    return res.status(404).json({ success: false, message: 'Tiket tidak ditemukan.' });
+    if (error) throw error;
+    res.json({ success: true, tickets });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengambil data tiket.' });
   }
-
-  ticket.status = action === 'approve' ? 'Approved' : 'Rejected';
-  res.json({ success: true, message: `Status #${noTiket} diubah menjadi ${action}` });
 });
 
-// Jalankan Server
+// API 4: Action Admin (Approve/Reject)
+app.post('/api/doa/action', requireAdminAuth, async (req, res) => {
+  try {
+    const { noTiket, action } = req.body;
+    const statusBaru = action === 'approve' ? 'Approved' : 'Rejected';
+
+    const { error } = await supabase
+      .from('doa_tickets')
+      .update({ status: statusBaru })
+      .eq('no_tiket', noTiket);
+
+    if (error) throw error;
+    res.json({ success: true, message: `Status tiket diubah menjadi ${statusBaru}` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengubah status.' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server jalan di port ${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 module.exports = app;
