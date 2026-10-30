@@ -6,9 +6,11 @@
   <title>Admin Dashboard QC DOA - ADVAN</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
     
-    header { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    /* Mengunci layar utama agar tidak ada scrollbar halaman */
+    html, body { height: 100vh; overflow: hidden; background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; }
+    
+    header { height: 65px; background: #1e293b; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; flex-shrink: 0; }
     header h1 { font-size: 20px; color: #38bdf8; }
     header p { font-size: 12px; color: #94a3b8; }
     .nav-btns { display: flex; gap: 10px; align-items: center; }
@@ -19,11 +21,15 @@
     .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
     .btn-logout { background: #ef4444; color: white; }
 
-    .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; }
+    /* Container mengambil sisa tinggi layar */
+    .main-container { display: flex; flex: 1; height: calc(100vh - 65px); padding: 20px; gap: 20px; overflow: hidden; }
     
-    .sidebar { width: 320px; background: #1e293b; border-radius: 8px; padding: 15px; border: 1px solid #334155; height: calc(100vh - 110px); overflow-y: auto; }
-    .sidebar-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    /* Sidebar Terkunci (Independent Scroll) */
+    .sidebar { width: 320px; min-width: 320px; background: #1e293b; border-radius: 8px; padding: 15px; border: 1px solid #334155; height: 100%; overflow-y: auto; display: flex; flex-direction: column; }
+    .sidebar-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .badge-count { background: #334155; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+
+    #ticketList { flex: 1; overflow-y: auto; padding-right: 4px; }
 
     .ticket-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
     .ticket-card:hover, .ticket-card.active { border-color: #38bdf8; background: #1e293b; }
@@ -36,7 +42,8 @@
     .status-approved { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
     .status-rejected { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
 
-    .content-area { flex: 1; background: #1e293b; border-radius: 8px; padding: 25px; border: 1px solid #334155; display: flex; flex-direction: column; overflow-y: auto; }
+    /* Area Formulir Detail yang Bisa Di-scroll Sendiri */
+    .content-area { flex: 1; background: #1e293b; border-radius: 8px; padding: 25px; border: 1px solid #334155; height: 100%; overflow-y: auto; display: flex; flex-direction: column; }
     .empty-state { margin: auto; text-align: center; color: #64748b; font-size: 14px; }
 
     .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
