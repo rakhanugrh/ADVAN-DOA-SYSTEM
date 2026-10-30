@@ -3,216 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard QC DOA - ADVAN</title>
+  <title>Pengajuan Klaim Garansi DOA - ADVAN</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
+    body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
+    .container { background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
     
-    header { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-    header h1 { font-size: 20px; color: #38bdf8; }
-    header p { font-size: 12px; color: #94a3b8; }
-    .nav-btns { display: flex; gap: 10px; align-items: center; }
-    .status-live { font-size: 12px; color: #34d399; display: flex; align-items: center; gap: 6px; background: #065f4633; padding: 6px 12px; border-radius: 20px; border: 1px solid #059669; }
-    .dot { width: 8px; height: 8px; background: #34d399; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-    .btn-logout { background: #ef4444; color: white; }
-
-    .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; }
+    /* Header Banner Pink */
+    .header-banner { background: #e91e63; padding: 30px 20px; text-align: center; }
+    .logo-box { background: white; padding: 8px 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .logo-box img { max-height: 40px; width: auto; display: block; object-fit: contain; }
     
-    .sidebar { width: 320px; background: #1e293b; border-radius: 8px; padding: 15px; border: 1px solid #334155; height: calc(100vh - 110px); overflow-y: auto; }
-    .sidebar-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .badge-count { background: #334155; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-
-    .ticket-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
-    .ticket-card:hover, .ticket-card.active { border-color: #38bdf8; background: #1e293b; }
-    .ticket-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-weight: bold; }
-    .ticket-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
-    .ticket-unit { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .content-body { padding: 30px; }
+    .title-section { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .title-section h1 { color: #333; font-size: 20px; margin-bottom: 5px; }
+    .title-section p { color: #666; font-size: 13px; }
     
-    .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-    .status-pending { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b; }
-    .status-approved { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
-    .status-rejected { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
+    /* Form & Category Tabs */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2563eb; }
 
-    .content-area { flex: 1; background: #1e293b; border-radius: 8px; padding: 25px; border: 1px solid #334155; display: flex; flex-direction: column; overflow-y: auto; }
-    .empty-state { margin: auto; text-align: center; color: #64748b; font-size: 14px; }
+    .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; margin-bottom: 18px; }
+    .tab-btn { padding: 10px 6px; border: 1px solid #dcdfe6; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .tab-btn.active { background: #e91e63; color: white; border-color: #e91e63; }
 
-    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
-    .detail-item label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .detail-item div { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-top: 2px; }
-
-    .media-box { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px; }
-    .media-box label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
-
-    .action-bar { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid #334155; }
-    .btn-approve { background: #10b981; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
-    .btn-reject { background: #ef4444; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
-    .btn-approve:hover { background: #059669; }
-    .btn-reject:hover { background: #dc2626; }
+    .note { font-size: 11px; color: #888; margin-top: 4px; }
+    .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 10px; }
+    .btn-submit:hover { background: #1d4ed8; }
+    .alert { padding: 12px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
+    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div>
-      <h1>Dashboard Approval QC DOA</h1>
-      <p>Advan Service Center Internal Portal</p>
-    </div>
-    <div class="nav-btns">
-      <div class="status-live"><div class="dot"></div> Auto Sync (5s)</div>
-      <button class="btn btn-logout" onclick="logout()">🚪 Logout</button>
-    </div>
-  </header>
-
-  <div class="main-container">
-    <div class="sidebar">
-      <div class="sidebar-title">
-        <span>DAFTAR KLAIM</span>
-        <span class="badge-count" id="ticketCount">0</span>
+  <div class="container">
+    <!-- Header Banner Pink dengan Logo ADVAN Resmi -->
+    <div class="header-banner">
+      <div class="logo-box">
+        <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan">
       </div>
-      <div id="ticketList"></div>
     </div>
 
-    <div class="content-area" id="contentArea">
-      <div class="empty-state">
-        👈 Pilih salah satu customer dari daftar di sebelah kiri untuk melihat detail klaim.
+    <div class="content-body">
+      <div class="title-section">
+        <h1>Formulir Pengajuan Klaim Garansi DOA</h1>
+        <p>Sistem Pelayanan Garansi Dead on Arrival</p>
       </div>
+
+      <div id="alertBox" class="alert"></div>
+
+      <form id="doaForm" enctype="multipart/form-data">
+        <input type="hidden" name="kategori" id="kategoriInput" value="Smartphone">
+
+        <div class="form-group">
+          <label>Nama Lengkap *</label>
+          <input type="text" name="nama" required placeholder="Masukkan nama pemohon">
+        </div>
+
+        <div class="form-group">
+          <label>Perusahaan / Dealer</label>
+          <input type="text" name="perusahaan" placeholder="Nama toko / perusahaan (opsional)">
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" name="email" required placeholder="contoh@email.com">
+        </div>
+
+        <div class="form-group">
+          <label>No. WhatsApp *</label>
+          <input type="tel" name="nowa" required placeholder="081234567890">
+        </div>
+
+        <!-- Kategori Perangkat -->
+        <div class="form-group">
+          <label>Pilih Kategori Perangkat *</label>
+          <div class="category-tabs">
+            <div class="tab-btn active" onclick="selectCategory('Smartphone', this)">📱 Smartphone</div>
+            <div class="tab-btn" onclick="selectCategory('Tablet', this)">Tab</div>
+            <div class="tab-btn" onclick="selectCategory('Laptop', this)">💻 Laptop</div>
+            <div class="tab-btn" onclick="selectCategory('PC / AIO', this)">🖥️ PC / AIO</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="labelModel">Pilih Model Spesifik Smartphone *</label>
+          <select name="tipeUnit" id="tipeUnitSelect" required>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Serial Number (SN) *</label>
+          <input type="text" name="snUnit" required placeholder="Masukkan SN unit">
+        </div>
+
+        <div class="form-group">
+          <label>Detail Kendala DOA *</label>
+          <textarea name="keluhan" required placeholder="Jelaskan detail kerusakan unit..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Upload Foto Bukti Fisik (Maksimal 5 foto) *</label>
+          <input type="file" name="files" multiple required accept="image/*">
+          <div class="note">* Tahan Ctrl / Shift untuk memilih hingga 5 foto.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Upload Video Bukti Kendala / Unboxing (Opsional / Maks 4MB)</label>
+          <input type="file" name="files" accept="video/*">
+          <div class="note">* Format video: MP4, MOV, atau AVI.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">Kirim Pengajuan Klaim DOA</button>
+      </form>
     </div>
   </div>
 
   <script>
-    let ticketsData = [];
-    let selectedTicketNo = null;
+    const models = {
+      'Smartphone': ['Advan GX', 'Advan G9 Pro', 'Advan Nasa Plus', 'Lainnya'],
+      'Tablet': ['Advan Tab VX', 'Advan Sketsa 2', 'Advan Tab Belajar', 'Lainnya'],
+      'Laptop': ['Workpro (Intel i5)', 'Workplus (AMD Ryzen)', 'Soulmate', '360 Stylus', 'Lainnya'],
+      'PC / AIO': ['AIO One PC', 'AIO PC Series', 'Lainnya']
+    };
 
-    async function loadTickets() {
-      try {
-        const res = await fetch('/api/doa/tickets');
-        if (res.status === 401 || res.status === 403) {
-          window.location.href = '/login.html';
-          return;
-        }
-        const data = await res.json();
-        if (data.success) {
-          ticketsData = data.tickets || [];
-          renderTicketList();
-          if (selectedTicketNo) {
-            const current = ticketsData.find(t => t.no_tiket === selectedTicketNo);
-            if (current) renderDetail(current);
-          }
-        }
-      } catch (err) {
-        console.error('Gagal mengambil data:', err);
-      }
-    }
-
-    function renderTicketList() {
-      const listContainer = document.getElementById('ticketList');
-      document.getElementById('ticketCount').innerText = ticketsData.length;
-      listContainer.innerHTML = '';
-
-      if (ticketsData.length === 0) {
-        listContainer.innerHTML = '<div style="text-align:center; color:#64748b; font-size:12px; padding:20px;">Belum ada klaim masuk.</div>';
-        return;
-      }
-
-      ticketsData.forEach(t => {
-        const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
-        
-        const card = document.createElement('div');
-        card.className = `ticket-card ${selectedTicketNo === t.no_tiket ? 'active' : ''}`;
-        card.onclick = () => {
-          selectedTicketNo = t.no_tiket;
-          renderTicketList();
-          renderDetail(t);
-        };
-
-        card.innerHTML = `
-          <div class="ticket-header">
-            <span>${t.no_tiket || '-'}</span>
-            <span class="status-badge ${statusClass}">${t.status || 'Pending'}</span>
-          </div>
-          <div class="ticket-name">${t.nama || 'Tanpa Nama'}</div>
-          <div class="ticket-unit">${t.kategori || ''} - ${t.tipe_unit || '-'}</div>
-        `;
-        listContainer.appendChild(card);
+    function selectCategory(cat, element) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('kategoriInput').value = cat;
+      document.getElementById('labelModel').innerText = `Pilih Model Spesifik ${cat} *`;
+      
+      const select = document.getElementById('tipeUnitSelect');
+      select.innerHTML = '';
+      models[cat].forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        select.appendChild(opt);
       });
     }
 
-    function renderDetail(t) {
-      const container = document.getElementById('contentArea');
-      const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
+    selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
 
-      container.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-          <h2>Detail Tiket: ${t.no_tiket}</h2>
-          <span class="status-badge ${statusClass}" style="font-size:12px; padding:5px 12px;">${t.status || 'Pending'}</span>
-        </div>
+    const doaForm = document.getElementById('doaForm');
+    const alertBox = document.getElementById('alertBox');
+    const btnSubmit = document.getElementById('btnSubmit');
 
-        <div class="detail-grid">
-          <div class="detail-item"><label>Nama Pemohon</label><div>${t.nama || '-'}</div></div>
-          <div class="detail-item"><label>Perusahaan / Dealer</label><div>${t.perusahaan || '-'}</div></div>
-          <div class="detail-item"><label>Email</label><div>${t.email || '-'}</div></div>
-          <div class="detail-item"><label>No. WhatsApp</label><div>${t.nowa || '-'}</div></div>
-          <div class="detail-item"><label>Kategori Perangkat</label><div>${t.kategori || '-'}</div></div>
-          <div class="detail-item"><label>Tipe / Model Unit</label><div>${t.tipe_unit || '-'}</div></div>
-          <div class="detail-item"><label>Serial Number (SN)</label><div>${t.sn_unit || '-'}</div></div>
-          <div class="detail-item"><label>Tanggal Pengajuan</label><div>${t.created_at ? new Date(t.created_at).toLocaleString('id-ID') : '-'}</div></div>
-        </div>
+    doaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alertBox.style.display = 'none';
+      btnSubmit.innerText = 'Mengirim Data...';
+      btnSubmit.disabled = true;
 
-        <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; margin-bottom:20px;">
-          <label style="display:block; font-size:11px; color:#94a3b8; text-transform:uppercase; margin-bottom:5px;">Detail Kendala DOA</label>
-          <div style="font-size:14px; color:#e2e8f0; line-height:1.5;">${t.keluhan || '-'}</div>
-        </div>
-
-        <div class="media-box">
-          <label>Lampiran Bukti Foto / Video Kerusakan</label>
-          <div style="font-size:13px; color:#38bdf8;">
-            📁 Lampiran terkirim dari perangkat user (Maks 4.5MB).
-          </div>
-        </div>
-
-        <div class="action-bar">
-          <button class="btn-approve" onclick="processAction('${t.no_tiket}', 'approve')">✔ Approve Klaim</button>
-          <button class="btn-reject" onclick="processAction('${t.no_tiket}', 'reject')">✖ Reject Klaim</button>
-        </div>
-      `;
-    }
-
-    async function processAction(noTiket, action) {
-      if (!confirm(`Apakah Anda yakin ingin ${action === 'approve' ? 'MENERIMA' : 'MENOLAK'} klaim ini?`)) return;
+      const formData = new FormData(doaForm);
 
       try {
-        const res = await fetch('/api/doa/action', {
+        const response = await fetch('/api/doa/submit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noTiket, action })
+          body: formData
         });
-        const data = await res.json();
+
+        const data = await response.json();
+
         if (data.success) {
-          alert(data.message);
-          loadTickets();
+          alertBox.className = 'alert alert-success';
+          alertBox.innerHTML = `<b>Berhasil!</b> ${data.message}<br>Nomor Tiket Anda: <b>${data.noTiket}</b>`;
+          alertBox.style.display = 'block';
+          doaForm.reset();
+          selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
         } else {
-          alert(data.message || 'Gagal mengubah status.');
+          alertBox.className = 'alert alert-danger';
+          alertBox.innerText = data.message || 'Gagal mengirim pengajuan.';
+          alertBox.style.display = 'block';
         }
       } catch (err) {
-        alert('Terjadi kesalahan sistem.');
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<b>KONEKSI ERROR!</b><br>Tidak dapat terhubung ke server atau ukuran file terlalu besar.';
+        alertBox.style.display = 'block';
+      } finally {
+        btnSubmit.innerText = 'Kirim Pengajuan Klaim DOA';
+        btnSubmit.disabled = false;
       }
-    }
-
-    async function logout() {
-      document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      window.location.href = '/login.html';
-    }
-
-    // Load Pertama Kali
-    loadTickets();
-
-    // AUTO-REFRESH OTOMATIS SETIAP 5 DETIK (Nggak perlu pencet refresh lagi!)
-    setInterval(() => {
-      loadTickets();
-    }, 5000);
+    });
   </script>
 </body>
 </html>
