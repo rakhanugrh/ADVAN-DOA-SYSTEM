@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -20,18 +19,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Multer Upload untuk Vercel Serverless
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = '/tmp/uploads';
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+// Multer Storage dalam Memori (Wajib untuk Vercel Serverless & Supabase Upload)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // Batas maksimum 10MB per file
 });
-const upload = multer({ storage });
 
-// Middleware Admin Auth
+// Middleware Authentikasi Admin
 const requireAdminAuth = (req, res, next) => {
   const token = req.cookies.admin_token;
   if (!token) return res.status(401).json({ success: false, message: 'Silakan login.' });
@@ -43,22 +37,55 @@ const requireAdminAuth = (req, res, next) => {
   }
 };
 
-// API 1: Login Admin
+// 1. API Login Admin
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin123') {
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('admin_token', token, { httpOnly: true });
+    res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
     return res.json({ success: true, message: 'Login berhasil!' });
   }
   res.status(401).json({ success: false, message: 'Username atau password salah!' });
 });
 
-// API 2: Submit Tiket (User) -> Simpan Ke Supabase
+// 2. API Submit Tiket (User) -> Upload Foto/Video ke Supabase Storage & Database
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
-    const { data, error } = await supabase
+    const fileUrls = [];
+
+    // Proses unggah setiap file yang dilampirkan user ke Supabase Storage
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const fileExt = path.extname(file.originalname);
+        const fileName = `${noTiket}/${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('doa-files')
+          .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
+          });
+
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage
+            .from('doa-files')
+            .getPublicUrl(fileName);
+          
+          if (publicUrlData && publicUrlData.publicUrl) {
+            fileUrls.push({ 
+              url: publicUrlData.publicUrl, 
+              type: file.mimetype 
+            });
+          }
+        } else {
+          console.error('Error Storage Upload:', uploadError);
+        }
+      }
+    }
+
+    // Simpan data formulir dan array URL file ke tabel Supabase
+    const { error: dbError } = await supabase
       .from('doa_tickets')
       .insert([{
         no_tiket: noTiket,
@@ -70,50 +97,22 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
         tipe_unit: req.body.tipeUnit,
         sn_unit: req.body.snUnit,
         keluhan: req.body.keluhan,
-        status: 'Pending'
+        status: 'Pending',
+        file_urls: JSON.stringify(fileUrls)
       }]);
 
-    if (error) throw error;
+    if (dbError) throw dbError;
     res.json({ success: true, message: 'Pengajuan berhasil dikirim!', noTiket });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Gagal menyimpan ke database.' });
+    console.error('Submit Error:', err);
+    res.status(500).json({ success: false, message: 'Gagal menyimpan data pengajuan.' });
   }
 });
 
-// API 3: Get Tiket (Admin) -> Ambil Dari Supabase
+// 3. API Ambil Data Tiket (Admin)
 app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
   try {
     const { data: tickets, error } = await supabase
       .from('doa_tickets')
       .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    res.json({ success: true, tickets });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal mengambil data tiket.' });
-  }
-});
-
-// API 4: Action Admin (Approve/Reject)
-app.post('/api/doa/action', requireAdminAuth, async (req, res) => {
-  try {
-    const { noTiket, action } = req.body;
-    const statusBaru = action === 'approve' ? 'Approved' : 'Rejected';
-
-    const { error } = await supabase
-      .from('doa_tickets')
-      .update({ status: statusBaru })
-      .eq('no_tiket', noTiket);
-
-    if (error) throw error;
-    res.json({ success: true, message: `Status tiket diubah menjadi ${statusBaru}` });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal mengubah status.' });
-  }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-module.exports = app;
+      .order('created_at',
