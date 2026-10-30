@@ -13,19 +13,19 @@ const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Middleware (Dinaikkan limit parser untuk kestabilan video)
+// Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Multer Storage dalam Memori
+// Multer Storage Memory
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 4.5 * 1024 * 1024 } // Limit Vercel Serverless (Max 4.5MB)
 });
 
-// Middleware Authentikasi Admin
+// Middleware Auth Admin
 const requireAdminAuth = (req, res, next) => {
   const token = req.cookies.admin_token;
   if (!token) return res.status(401).json({ success: false, message: 'Silakan login.' });
@@ -53,7 +53,7 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Username atau password salah!' });
 });
 
-// 2. API Submit Tiket (User)
+// 2. API Submit Tiket (User) -> Upload dengan Explicit MIME Type Video
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
@@ -61,13 +61,19 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const fileExt = path.extname(file.originalname);
+        const fileExt = path.extname(file.originalname).toLowerCase();
         const fileName = `${noTiket}/${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+
+        // Deteksi MIME Type Akurat
+        let mimeType = file.mimetype;
+        if (fileExt === '.mp4') mimeType = 'video/mp4';
+        else if (fileExt === '.mov') mimeType = 'video/quicktime';
+        else if (fileExt === '.webm') mimeType = 'video/webm';
 
         const { error: uploadError } = await supabase.storage
           .from('doa-files')
           .upload(fileName, file.buffer, {
-            contentType: file.mimetype,
+            contentType: mimeType,
             upsert: true
           });
 
@@ -79,7 +85,7 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
           if (publicUrlData && publicUrlData.publicUrl) {
             fileUrls.push({ 
               url: publicUrlData.publicUrl, 
-              type: file.mimetype 
+              type: mimeType 
             });
           }
         }
