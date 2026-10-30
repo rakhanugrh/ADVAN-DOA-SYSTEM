@@ -14,15 +14,15 @@ const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Multer Storage dalam Memori (Wajib untuk Vercel Serverless & Supabase Upload)
+// Multer Storage dalam Memori
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // Batas maksimum 10MB per file
+  limits: { fileSize: 4.5 * 1024 * 1024 } // Batas Vercel Serverless (Max 4.5MB)
 });
 
 // Middleware Authentikasi Admin
@@ -37,6 +37,11 @@ const requireAdminAuth = (req, res, next) => {
   }
 };
 
+// Routing Halaman Utama
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // 1. API Login Admin
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
@@ -48,13 +53,12 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Username atau password salah!' });
 });
 
-// 2. API Submit Tiket (User) -> Upload Foto/Video ke Supabase Storage & Database
+// 2. API Submit Tiket (User)
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
     const fileUrls = [];
 
-    // Proses unggah setiap file yang dilampirkan user ke Supabase Storage
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const fileExt = path.extname(file.originalname);
@@ -78,13 +82,10 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
               type: file.mimetype 
             });
           }
-        } else {
-          console.error('Error Storage Upload:', uploadError);
         }
       }
     }
 
-    // Simpan data formulir dan array URL file ke tabel Supabase
     const { error: dbError } = await supabase
       .from('doa_tickets')
       .insert([{
@@ -115,4 +116,35 @@ app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
     const { data: tickets, error } = await supabase
       .from('doa_tickets')
       .select('*')
-      .order('created_at',
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ success: true, tickets });
+  } catch (err) {
+    console.error('Fetch Tickets Error:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengambil data tiket.' });
+  }
+});
+
+// 4. API Ubah Status (Approve/Reject)
+app.post('/api/doa/action', requireAdminAuth, async (req, res) => {
+  try {
+    const { noTiket, action } = req.body;
+    const statusBaru = action === 'approve' ? 'Approved' : 'Rejected';
+
+    const { error } = await supabase
+      .from('doa_tickets')
+      .update({ status: statusBaru })
+      .eq('no_tiket', noTiket);
+
+    if (error) throw error;
+    res.json({ success: true, message: `Status tiket diubah menjadi ${statusBaru}` });
+  } catch (err) {
+    console.error('Action Error:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengubah status.' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+module.exports = app;
