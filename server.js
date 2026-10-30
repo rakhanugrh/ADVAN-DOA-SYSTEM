@@ -71,12 +71,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 1. API Login Admin (TANPA LIMITER & Support Hardcoded + Supabase)
+// 1. API Login Admin (TANPA LIMITER & Direct Check admin/admin123)
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // A. Cek Akun Default Hardcoded (Selalu Bisa Digunakan)
+    // A. Cek Akun Default Hardcoded (Pasti Lolos)
     if (username === 'admin' && password === 'admin123') {
       const token = jwt.sign({ username: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
       res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
