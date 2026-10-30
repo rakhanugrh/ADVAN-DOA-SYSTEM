@@ -6,46 +6,63 @@
   <title>Pengajuan Klaim Garansi DOA - ADVAN</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f6f9; padding: 20px; display: flex; justify-content: center; }
-    .container { background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
+    body { background-color: #0f172a; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+    .container { background: #1e293b; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); overflow: hidden; border: 1px solid #334155; }
     
-    /* Header Banner Pink */
-    .header-banner { background: #e91e63; padding: 30px 20px; text-align: center; }
-    .logo-box { background: white; padding: 8px 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .logo-box img { max-height: 40px; width: auto; display: block; object-fit: contain; }
+    /* Header Banner Pink dengan Logo Besar */
+    .header-banner { 
+      background: #dc2626; 
+      padding: 35px 20px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+    }
+    .header-banner img { 
+      max-height: 75px; 
+      width: auto; 
+      display: block; 
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); 
+    }
     
-    .content-body { padding: 30px; }
-    .title-section { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-    .title-section h1 { color: #333; font-size: 20px; margin-bottom: 5px; }
-    .title-section p { color: #666; font-size: 13px; }
+    .content-body { padding: 30px; color: #f8fafc; }
+    .title-section { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+    .title-section h1 { color: #f8fafc; font-size: 20px; margin-bottom: 5px; }
+    .title-section p { color: #94a3b8; font-size: 13px; }
     
     /* Form & Category Tabs */
     .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { 
+      width: 100%; 
+      padding: 10px 12px; 
+      background: #0f172a; 
+      border: 1px solid #334155; 
+      border-radius: 6px; 
+      font-size: 14px; 
+      color: #f8fafc; 
+      outline: none; 
+    }
     .form-group textarea { resize: vertical; min-height: 80px; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2563eb; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #38bdf8; }
 
     .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; margin-bottom: 18px; }
-    .tab-btn { padding: 10px 6px; border: 1px solid #dcdfe6; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; text-align: center; transition: all 0.2s; }
-    .tab-btn.active { background: #e91e63; color: white; border-color: #e91e63; }
+    .tab-btn { padding: 10px 6px; border: 1px solid #334155; background: #0f172a; border-radius: 8px; font-size: 13px; font-weight: 600; color: #94a3b8; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .tab-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
 
-    .note { font-size: 11px; color: #888; margin-top: 4px; }
+    .note { font-size: 11px; color: #64748b; margin-top: 4px; }
     .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 10px; }
     .btn-submit:hover { background: #1d4ed8; }
     .alert { padding: 12px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
-    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-    .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+    .alert-danger { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
+    .alert-success { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Header Banner Pink dengan Logo ADVAN Resmi -->
+    <!-- Header Banner Pink dengan Logo ADVAN Besar -->
     <div class="header-banner">
-      <div class="logo-box">
-        <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan">
-      </div>
+      <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan Besar">
     </div>
 
     <div class="content-body">
