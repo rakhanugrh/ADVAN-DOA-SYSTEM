@@ -6,85 +6,129 @@
   <title>Login Admin QC - ADVAN DOA</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .login-card { background: #ffffff; width: 100%; max-width: 420px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
-    .header { background: #e91e63; padding: 30px 20px; text-align: center; }
-    .header img { height: 40px; background: white; padding: 5px 15px; border-radius: 6px; }
-    .content { padding: 30px; }
-    .content h2 { text-align: center; color: #333; font-size: 20px; margin-bottom: 5px; }
-    .content p { text-align: center; color: #777; font-size: 13px; margin-bottom: 25px; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 8px; }
-    .form-group input { width: 100%; padding: 12px; border: 1px solid #dcdfe6; border-radius: 8px; font-size: 14px; outline: none; }
+    body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    
+    .login-card { background: #ffffff; width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; }
+    
+    /* Header Banner Putih dengan Logo ADVAN Resmi */
+    .header-banner { 
+      background: #ffffff; 
+      padding: 30px 20px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .header-banner img { 
+      max-height: 55px; 
+      width: auto; 
+      display: block; 
+    }
+
+    .card-body { padding: 30px; }
+    .title-box { text-align: center; margin-bottom: 25px; }
+    .title-box h2 { font-size: 20px; color: #1e293b; margin-bottom: 6px; font-weight: 700; }
+    .title-box p { font-size: 13px; color: #64748b; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .form-group input { 
+      width: 100%; 
+      padding: 12px 14px; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      outline: none; 
+      transition: border-color 0.2s;
+    }
     .form-group input:focus { border-color: #2563eb; }
-    .btn-login { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px; }
+
+    .btn-login { 
+      width: 100%; 
+      padding: 12px; 
+      background: #2563eb; 
+      color: white; 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: 600; 
+      font-size: 15px; 
+      cursor: pointer; 
+      margin-top: 10px; 
+      transition: background 0.2s;
+    }
     .btn-login:hover { background: #1d4ed8; }
-    .alert { padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
+
+    .alert { padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
     .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
   </style>
 </head>
 <body>
 
   <div class="login-card">
-    <div class="header">
-      <h1 style="color: white; font-size: 24px; font-weight: bold;">ADVAN</h1>
+    <!-- Banner Logo ADVAN -->
+    <div class="header-banner">
+      <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan">
     </div>
-    <div class="content">
-      <h2>Admin Login Portal</h2>
-      <p>Sistem Approval Klaim Garansi DOA Advan</p>
 
-      <div id="errorAlert" class="alert alert-danger"></div>
+    <div class="card-body">
+      <div class="title-box">
+        <h2>Admin Login Portal</h2>
+        <p>Sistem Approval Klaim Garansi DOA Advan</p>
+      </div>
+
+      <div id="alertBox" class="alert alert-danger"></div>
 
       <form id="loginForm">
         <div class="form-group">
           <label>Username Admin</label>
-          <input type="text" id="username" placeholder="Masukkan username" required>
+          <input type="text" id="username" required placeholder="Masukkan username">
         </div>
+
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="password" placeholder="Masukkan password" required>
+          <input type="password" id="password" required placeholder="Masukkan password">
         </div>
-        <button type="submit" class="btn-login" id="btnSubmit">Masuk Ke Dashboard Admin</button>
+
+        <button type="submit" class="btn-login" id="btnLogin">Masuk Ke Dashboard Admin</button>
       </form>
     </div>
   </div>
 
   <script>
     const loginForm = document.getElementById('loginForm');
-    const errorAlert = document.getElementById('errorAlert');
-    const btnSubmit = document.getElementById('btnSubmit');
+    const alertBox = document.getElementById('alertBox');
+    const btnLogin = document.getElementById('btnLogin');
 
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      errorAlert.style.display = 'none';
-      btnSubmit.innerText = 'Memproses...';
-      btnSubmit.disabled = true;
+      alertBox.style.display = 'none';
+      btnLogin.innerText = 'Memproses...';
+      btnLogin.disabled = true;
 
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
       try {
-        // Menggunakan URL relatif '/api/admin/login' agar kompatibel penuh dengan Vercel
-        const response = await fetch('/api/admin/login', {
+        const res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (data.success) {
           window.location.href = '/admin.html';
         } else {
-          errorAlert.innerText = data.message || 'Login gagal!';
-          errorAlert.style.display = 'block';
+          alertBox.innerText = data.message || 'Login gagal, periksa kembali akun Anda.';
+          alertBox.style.display = 'block';
         }
       } catch (err) {
-        errorAlert.innerText = 'Terjadi kesalahan sistem atau koneksi server.';
-        errorAlert.style.display = 'block';
+        alertBox.innerText = 'Terjadi kesalahan sistem/koneksi.';
+        alertBox.style.display = 'block';
       } finally {
-        btnSubmit.innerText = 'Masuk Ke Dashboard Admin';
-        btnSubmit.disabled = false;
+        btnLogin.innerText = 'Masuk Ke Dashboard Admin';
+        btnLogin.disabled = false;
       }
     });
   </script>
