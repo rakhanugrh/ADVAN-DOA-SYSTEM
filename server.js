@@ -4,7 +4,6 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -17,8 +16,8 @@ const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Konfigurasi Transporter Nodemailer (Gmail SMTP)
-const SENDER_EMAIL = 'emailkamu@gmail.com'; // Ganti dengan Email Pengirim
-const SENDER_APP_PASSWORD = 'abcd efgh ijkl mnop'; // Ganti dengan 16 digit App Password Gmail
+const SENDER_EMAIL = 'emailkamu@gmail.com'; 
+const SENDER_APP_PASSWORD = 'abcd efgh ijkl mnop'; 
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -32,16 +31,7 @@ const transporter = nodemailer.createTransport({
 // 1. HTTP Security Headers
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// 2. Anti Brute-Force Rate Limiter Halaman Login (Maks 10 percobaan / 15 menit)
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 10, 
-  message: { success: false, message: '🔒 Terlalu banyak percobaan login! Akses diblokir sementara. Coba lagi setelah 15 menit.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// 3. Helper Validator Magic Byte Biner (Sanitasi File Jahat / Malware)
+// 2. Helper Validator Magic Byte Biner (Sanitasi File Jahat / Malware)
 const isValidFileMagicByte = (buffer) => {
   const hex = buffer.toString('hex', 0, 8).toUpperCase();
   const isJPEG = hex.startsWith('FFD8FF');
@@ -61,7 +51,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Multer Storage Memory
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 4.5 * 1024 * 1024 } // Limit Vercel Max 4.5MB
+  limits: { fileSize: 4.5 * 1024 * 1024 }
 });
 
 // Middleware Authentikasi Admin
@@ -81,12 +71,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 1. API Login Admin (Hardcoded + Supabase Database Hybrid)
-app.post('/api/admin/login', loginLimiter, async (req, res) => {
+// 1. API Login Admin (TANPA LIMITER & Support Hardcoded + Supabase)
+app.post('/api/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // A. Cek Akun Default Hardcoded (Fallback)
+    // A. Cek Akun Default Hardcoded (Selalu Bisa Digunakan)
     if (username === 'admin' && password === 'admin123') {
       const token = jwt.sign({ username: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
       res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
