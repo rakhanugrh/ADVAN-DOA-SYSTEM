@@ -16,9 +16,9 @@ const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Konfigurasi Transporter Nodemailer (Gmail)
-const SENDER_EMAIL = 'emailkamu@gmail.com'; 
-const SENDER_APP_PASSWORD = 'abcd efgh ijkl mnop'; 
+// Konfigurasi Transporter Nodemailer (Gmail SMTP)
+const SENDER_EMAIL = 'emailkamu@gmail.com'; // Ganti dengan Email Pengirim
+const SENDER_APP_PASSWORD = 'abcd efgh ijkl mnop'; // Ganti dengan 16 digit App Password Gmail
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -26,33 +26,33 @@ const transporter = nodemailer.createTransport({
 });
 
 // ==========================================
-// FITUR CYBER SECURITY (100% GRATIS)
+// FITUR CYBER SECURITY
 // ==========================================
 
-// 1. Amankan HTTP Header dari vulnerability umum
+// 1. HTTP Security Headers
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// 2. Anti Brute-Force Limiter khusus Halaman Login (Maks 5x Coba per 15 Menit)
+// 2. Anti Brute-Force Rate Limiter Halaman Login (Maks 10 percobaan / 15 menit)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 5, 
+  max: 10, 
   message: { success: false, message: '🔒 Terlalu banyak percobaan login! Akses diblokir sementara. Coba lagi setelah 15 menit.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// 3. Helper Validator Magic Byte Biner (Deteksi File Jahat/Malware Mengubah Ekstensi)
+// 3. Helper Validator Magic Byte Biner (Sanitasi File Jahat / Malware)
 const isValidFileMagicByte = (buffer) => {
   const hex = buffer.toString('hex', 0, 8).toUpperCase();
   const isJPEG = hex.startsWith('FFD8FF');
   const isPNG = hex.startsWith('89504E47');
-  const isWEBP = hex.startsWith('52494646'); // RIFF header
+  const isWEBP = hex.startsWith('52494646');
   const isMP4orMOV = hex.includes('66747970'); // 'ftyp' header
   
   return isJPEG || isPNG || isWEBP || isMP4orMOV;
 };
 
-// Middleware Umum
+// Middleware Utama
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
@@ -61,10 +61,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Multer Storage Memory
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 4.5 * 1024 * 1024 }
+  limits: { fileSize: 4.5 * 1024 * 1024 } // Limit Vercel Max 4.5MB
 });
 
-// Middleware Auth Admin
+// Middleware Authentikasi Admin
 const requireAdminAuth = (req, res, next) => {
   const token = req.cookies.admin_token;
   if (!token) return res.status(401).json({ success: false, message: 'Silakan login.' });
@@ -76,15 +76,24 @@ const requireAdminAuth = (req, res, next) => {
   }
 };
 
-// Routing Utama
+// Routing Halaman Depan
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 1. API Login Admin (Dilindungi Proteksi Anti Brute-Force Login)
+// 1. API Login Admin (Hardcoded + Supabase Database Hybrid)
 app.post('/api/admin/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    // A. Cek Akun Default Hardcoded (Fallback)
+    if (username === 'admin' && password === 'admin123') {
+      const token = jwt.sign({ username: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
+      res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
+      return res.json({ success: true, message: 'Login berhasil!' });
+    }
+
+    // B. Cek Akun Terdaftar di Supabase
     const { data: user } = await supabase
       .from('admin_users')
       .select('*')
@@ -97,6 +106,7 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
       return res.json({ success: true, message: 'Login berhasil!' });
     }
+
     res.status(401).json({ success: false, message: 'Username atau password salah!' });
   } catch (err) {
     res.status(401).json({ success: false, message: 'Username atau password salah!' });
@@ -132,7 +142,7 @@ app.post('/api/admin/register', async (req, res) => {
   }
 });
 
-// 3. API Submit Tiket (User) + Validasi File Malware + Auto Send Email
+// 3. API Submit Tiket (User) + Security Check + Email Notification
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
@@ -140,12 +150,12 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        
-        // --- PROTEKSI CYBER: Cek Kebenaran Header Biner File (Sanitasi File) ---
+
+        // Validasi Biner File (Sanitasi Malware)
         if (!isValidFileMagicByte(file.buffer)) {
           return res.status(400).json({ 
             success: false, 
-            message: `⚠️ FILE DITOLAK! File '${file.originalname}' terdeteksi bukan gambar/video asli atau berpotensi bahaya.` 
+            message: `⚠️ FILE DITOLAK! File '${file.originalname}' terdeteksi berpotensi berbahaya.` 
           });
         }
 
@@ -195,13 +205,26 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
 
     if (dbError) throw dbError;
 
-    // Email Notification
+    // Kirim Email Konfirmasi Otomatis ke User
     if (req.body.email && SENDER_EMAIL !== 'emailkamu@gmail.com') {
       const mailOptions = {
         from: `"Advan DOA Service Center" <${SENDER_EMAIL}>`,
         to: req.body.email,
         subject: `[Klaim Garansi DOA] Konfirmasi Pengajuan Tiket #${noTiket}`,
-        html: `<p>Halo <b>${req.body.nama}</b>, pengajuan klaim garansi Anda (#${noTiket}) telah diterima.</p>`
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f9;">
+            <div style="max-width: 600px; background: white; padding: 25px; border-radius: 8px; margin: auto;">
+              <h2 style="color: #2563eb; margin-bottom: 10px;">Pengajuan Klaim Garansi DOA Diterima</h2>
+              <p>Halo <b>${req.body.nama}</b>,</p>
+              <p>Pengajuan klaim garansi Dead on Arrival (DOA) Anda telah berhasil dicatat.</p>
+              <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 4px 0;"><b>Nomor Tiket:</b> <span style="color: #2563eb;">${noTiket}</span></p>
+                <p style="margin: 4px 0;"><b>Model Unit:</b> ${req.body.tipeUnit}</p>
+                <p style="margin: 4px 0;"><b>Serial Number:</b> ${req.body.snUnit}</p>
+              </div>
+              <p>Tim QC Advan akan memverifikasi klaim Anda secepatnya.</p>
+            </div>
+          </div>`
       };
       transporter.sendMail(mailOptions).catch(err => console.error('Gagal Kirim Email:', err));
     }
@@ -228,18 +251,37 @@ app.get('/api/doa/tickets', requireAdminAuth, async (req, res) => {
   }
 });
 
-// 5. API Ubah Status (Approve/Reject)
+// 5. API Ubah Status (Approve/Reject) + Notification Email
 app.post('/api/doa/action', requireAdminAuth, async (req, res) => {
   try {
     const { noTiket, action } = req.body;
     const statusBaru = action === 'approve' ? 'Approved' : 'Rejected';
 
-    const { error } = await supabase
+    const { data: ticket, error: fetchErr } = await supabase
       .from('doa_tickets')
       .update({ status: statusBaru })
-      .eq('no_tiket', noTiket);
+      .eq('no_tiket', noTiket)
+      .select()
+      .single();
 
-    if (error) throw error;
+    if (fetchErr) throw fetchErr;
+
+    // Send Email Status Update
+    if (ticket && ticket.email && SENDER_EMAIL !== 'emailkamu@gmail.com') {
+      const statusColor = statusBaru === 'Approved' ? '#10b981' : '#ef4444';
+      const mailOptions = {
+        from: `"Advan DOA Service Center" <${SENDER_EMAIL}>`,
+        to: ticket.email,
+        subject: `[Update Status DOA] Tiket #${noTiket} - ${statusBaru}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Update Status Klaim Garansi DOA</h2>
+            <p>Halo <b>${ticket.nama}</b>, tiket pengajuan #${noTiket} Anda saat ini berstatus: <b style="color:${statusColor}">${statusBaru.toUpperCase()}</b>.</p>
+          </div>`
+      };
+      transporter.sendMail(mailOptions).catch(err => console.error('Gagal Kirim Status Email:', err));
+    }
+
     res.json({ success: true, message: `Status tiket diubah menjadi ${statusBaru}` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal mengubah status.' });
