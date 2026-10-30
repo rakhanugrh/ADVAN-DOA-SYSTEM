@@ -13,16 +13,16 @@ const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Middleware (Dinaikkan limit parser untuk kestabilan video)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Multer Storage dalam Memori
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 4.5 * 1024 * 1024 } // Batas Vercel Serverless (Max 4.5MB)
+  limits: { fileSize: 4.5 * 1024 * 1024 } // Limit Vercel Serverless (Max 4.5MB)
 });
 
 // Middleware Authentikasi Admin
