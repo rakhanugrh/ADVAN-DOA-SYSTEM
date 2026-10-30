@@ -4,232 +4,201 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard QC DOA - ADVAN</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 h-screen flex flex-col font-sans">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    header { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    header h1 { font-size: 20px; color: #38bdf8; }
+    header p { font-size: 12px; color: #94a3b8; }
+    .nav-btns { display: flex; gap: 10px; }
+    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-refresh { background: #0284c7; color: white; }
+    .btn-logout { background: #ef4444; color: white; }
 
-  <!-- HEADER ADMIN WITH LOGOUT -->
-  <header class="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0">
+    .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; }
+    
+    .sidebar { width: 320px; background: #1e293b; border-radius: 8px; padding: 15px; border: 1px solid #334155; height: calc(100vh - 110px); overflow-y: auto; }
+    .sidebar-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .badge-count { background: #334155; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+
+    .ticket-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+    .ticket-card:hover, .ticket-card.active { border-color: #38bdf8; background: #1e293b; }
+    .ticket-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-weight: bold; }
+    .ticket-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+    .ticket-unit { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    
+    .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+    .status-pending { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b; }
+    .status-approved { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
+    .status-rejected { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
+
+    .content-area { flex: 1; background: #1e293b; border-radius: 8px; padding: 25px; border: 1px solid #334155; display: flex; flex-direction: column; }
+    .empty-state { margin: auto; text-align: center; color: #64748b; font-size: 14px; }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
+    .detail-item label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .detail-item div { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-top: 2px; }
+
+    .action-bar { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid #334155; }
+    .btn-approve { background: #10b981; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
+    .btn-reject { background: #ef4444; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
+    .btn-approve:hover { background: #059669; }
+    .btn-reject:hover { background: #dc2626; }
+  </style>
+</head>
+<body>
+
+  <header>
     <div>
-      <h1 class="text-xl font-bold text-blue-700">Dashboard Approval QC DOA</h1>
-      <p class="text-xs text-gray-500">Advan Service Center Internal Portal</p>
+      <h1>Dashboard Approval QC DOA</h1>
+      <p>Advan Service Center Internal Portal</p>
     </div>
-    <div class="flex items-center gap-3">
-      <button onclick="loadTickets()" class="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-        🔄 Refresh Data
-      </button>
-      <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-        🚪 Logout
-      </button>
+    <div class="nav-btns">
+      <button class="btn btn-refresh" onclick="loadTickets()">🔄 Refresh Data</button>
+      <button class="btn btn-logout" onclick="logout()">🚪 Logout</button>
     </div>
   </header>
 
-  <div id="actionAlert" class="hidden mx-6 mt-4 p-3 rounded-lg text-xs font-semibold"></div>
-
-  <div class="flex-1 flex overflow-hidden p-6 gap-6">
-
-    <!-- SIDEBAR KIRI: DAFTAR CUSTOMER -->
-    <div class="w-1/4 bg-white border rounded-xl shadow-sm flex flex-col overflow-hidden shrink-0">
-      <div class="p-4 border-b bg-gray-50 font-bold text-xs text-gray-600 uppercase tracking-wider flex justify-between items-center">
-        <span>Daftar Klaim</span>
-        <span id="ticketCount" class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-[10px]">0</span>
+  <div class="main-container">
+    <!-- Sidebar List Tiket -->
+    <div class="sidebar">
+      <div class="sidebar-title">
+        <span>DAFTAR KLAIM</span>
+        <span class="badge-count" id="ticketCount">0</span>
       </div>
-      <div id="customerList" class="flex-1 overflow-y-auto divide-y">
+      <div id="ticketList">
+        <!-- List tiket akan dimuat di sini -->
       </div>
     </div>
 
-    <!-- PANEL KANAN: DETAIL, FOTO, & VIDEO BUKTI -->
-    <div class="flex-1 bg-white border rounded-xl shadow-sm p-6 overflow-y-auto flex flex-col justify-between" id="detailPanel">
-      <div class="text-center text-gray-400 my-auto">
+    <!-- Area Detail Tiket -->
+    <div class="content-area" id="contentArea">
+      <div class="empty-state">
         👈 Pilih salah satu customer dari daftar di sebelah kiri untuk melihat detail klaim.
       </div>
     </div>
-
   </div>
 
   <script>
     let ticketsData = [];
-    let activeTicketNo = null;
-
-    document.addEventListener('DOMContentLoaded', loadTickets);
+    let selectedTicketNo = null;
 
     async function loadTickets() {
       try {
-        const res = await fetch('/api/doa/list');
-        if (res.status === 401) {
+        const res = await fetch('/api/doa/tickets');
+        if (res.status === 401 || res.status === 403) {
           window.location.href = '/login.html';
           return;
         }
-        ticketsData = await res.json();
-        
-        document.getElementById('ticketCount').innerText = ticketsData.length;
-        renderCustomerList();
-
-        if (ticketsData.length > 0) {
-          const targetNo = activeTicketNo || ticketsData[0].noTiket;
-          selectCustomer(targetNo);
-        } else {
-          document.getElementById('detailPanel').innerHTML = `
-            <div class="text-center text-gray-400 my-auto">
-              Belum ada data pengajuan garansi yang masuk.
-            </div>`;
+        const data = await res.json();
+        if (data.success) {
+          ticketsData = data.tickets || [];
+          renderTicketList();
+          if (selectedTicketNo) {
+            const current = ticketsData.find(t => t.no_tiket === selectedTicketNo);
+            if (current) renderDetail(current);
+          }
         }
       } catch (err) {
-        console.error("Gagal mengambil data:", err);
+        console.error('Gagal mengambil data:', err);
       }
     }
 
-    function renderCustomerList() {
-      const listEl = document.getElementById('customerList');
-      listEl.innerHTML = '';
+    function renderTicketList() {
+      const listContainer = document.getElementById('ticketList');
+      document.getElementById('ticketCount').innerText = ticketsData.length;
+      listContainer.innerHTML = '';
 
-      ticketsData.forEach((t) => {
-        const isActive = t.noTiket === activeTicketNo;
-        let badgeColor = "bg-yellow-100 text-yellow-800";
-        if (t.status === 'APPROVED') badgeColor = "bg-green-100 text-green-800";
-        if (t.status === 'REJECTED') badgeColor = "bg-red-100 text-red-800";
+      if (ticketsData.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; color:#64748b; font-size:12px; padding:20px;">Belum ada klaim masuk.</div>';
+        return;
+      }
 
-        listEl.innerHTML += `
-          <div onclick="selectCustomer('${t.noTiket}')" 
-               class="p-4 cursor-pointer hover:bg-blue-50 transition border-l-4 ${isActive ? 'bg-blue-50 border-blue-600 font-semibold' : 'border-transparent'}">
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-sm text-gray-800 font-bold">${t.nama || 'Customer'}</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeColor}">${t.status}</span>
-            </div>
-            <div class="text-xs text-gray-500">${t.noTiket}</div>
-            <div class="text-xs text-gray-400 truncate mt-1">${t.perusahaan || '-'} (${t.kota || '-'})</div>
+      ticketsData.forEach(t => {
+        const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
+        
+        const card = document.createElement('div');
+        card.className = `ticket-card ${selectedTicketNo === t.no_tiket ? 'active' : ''}`;
+        card.onclick = () => {
+          selectedTicketNo = t.no_tiket;
+          renderTicketList();
+          renderDetail(t);
+        };
+
+        card.innerHTML = `
+          <div class="ticket-header">
+            <span>${t.no_tiket}</span>
+            <span class="status-badge ${statusClass}">${t.status || 'Pending'}</span>
           </div>
+          <div class="ticket-name">${t.nama || '-'}</div>
+          <div class="ticket-unit">${t.kategori || ''} - ${t.tipe_unit || '-'}</div>
         `;
+        listContainer.appendChild(card);
       });
     }
 
-    function selectCustomer(noTiket) {
-      activeTicketNo = noTiket;
-      renderCustomerList();
+    function renderDetail(t) {
+      const container = document.getElementById('contentArea');
+      const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
 
-      const t = ticketsData.find(item => item.noTiket === noTiket);
-      if (!t) return;
-
-      const detailPanel = document.getElementById('detailPanel');
-
-      let statusBadge = `<span class="bg-yellow-100 text-yellow-800 border border-yellow-300 px-3 py-1 rounded-full text-xs font-bold">PENDING</span>`;
-      if (t.status === 'APPROVED') statusBadge = `<span class="bg-green-100 text-green-800 border border-green-300 px-3 py-1 rounded-full text-xs font-bold">APPROVED</span>`;
-      if (t.status === 'REJECTED') statusBadge = `<span class="bg-red-100 text-red-800 border border-red-300 px-3 py-1 rounded-full text-xs font-bold">REJECTED</span>`;
-
-      const photos = t.fotoUrls || (t.fotoUrl ? [t.fotoUrl] : []);
-      let photoGalleryHtml = photos.length > 0 ? photos.map(url => `
-        <a href="${url}" target="_blank" title="Klik memperbesar">
-          <img src="${url}" class="h-36 w-full object-cover rounded-lg shadow border hover:scale-105 transition">
-        </a>
-      `).join('') : `<span class="text-xs text-gray-400 italic">Tidak ada foto.</span>`;
-
-      const videos = t.videoUrls || [];
-      let videoGalleryHtml = videos.length > 0 ? videos.map(url => `
-        <div class="rounded-lg overflow-hidden border bg-black">
-          <video controls class="w-full h-44">
-            <source src="${url}" type="video/mp4">
-            Browser Anda tidak mendukung pemutaran video.
-          </video>
-        </div>
-      `).join('') : `<span class="text-xs text-gray-400 italic block p-2">Tidak ada video unboxing.</span>`;
-
-      let actionSection = `
-        <div class="border-t pt-4 flex gap-3 justify-end">
-          <button onclick="handleAction('${t.noTiket}', 'APPROVED')" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow transition">
-            ✓ Approve Klaim
-          </button>
-          <button onclick="handleAction('${t.noTiket}', 'REJECTED')" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow transition">
-            ✕ Reject Klaim
-          </button>
-        </div>
-      `;
-
-      if (t.status !== 'PENDING') {
-        actionSection = `
-          <div class="border-t pt-4 text-right text-xs text-gray-500">
-            <strong>Status Keputusan:</strong> ${t.status} | <strong>Catatan QC:</strong> ${t.alasanStatus || '-'}
-          </div>
-        `;
-      }
-
-      detailPanel.innerHTML = `
-        <div>
-          <div class="border-b pb-4 mb-6 flex justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-800">${t.nama}</h2>
-              <span class="text-xs text-blue-600 font-semibold">No Tiket: #${t.noTiket}</span>
-            </div>
-            <div>${statusBadge}</div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm mb-6 bg-gray-50 p-4 rounded-lg border">
-            <div><span class="font-semibold text-gray-500 block text-xs">nama lengkap:</span> <span class="font-medium text-gray-800">${t.nama}</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">perusahaan/toko:</span> <span class="font-medium text-gray-800">${t.perusahaan || '-'}</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">kota asal:</span> <span class="font-medium text-gray-800">${t.kota || '-'}</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">no. whatsapp aktif:</span> <span class="font-medium text-gray-800">${t.noWa}</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">email pemohon:</span> <span class="font-medium text-gray-800">${t.email}</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">tipe produk:</span> <span class="font-medium text-gray-800">${t.tipeProduk} (${t.modelProduk || '-'})</span></div>
-            <div><span class="font-semibold text-gray-500 block text-xs">serial number:</span> <span class="font-medium text-gray-800">${t.serialNumber}</span></div>
-            <div class="md:col-span-2"><span class="font-semibold text-gray-500 block text-xs">alamat lengkap:</span> <span class="font-medium text-gray-800">${t.alamat || '-'}</span></div>
-            <div class="md:col-span-2"><span class="font-semibold text-gray-500 block text-xs">kendala DOA:</span> <span class="font-medium text-gray-800">${t.catatan}</span></div>
-          </div>
-
-          <div class="mb-6">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Foto Bukti Fisik:</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-gray-100 p-3 rounded-lg border">
-              ${photoGalleryHtml}
-            </div>
-          </div>
-
-          <div class="mb-6">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Video Unboxing / Rekaman Kendala:</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-100 p-3 rounded-lg border">
-              ${videoGalleryHtml}
-            </div>
-          </div>
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h2>Detail Tiket: ${t.no_tiket}</h2>
+          <span class="status-badge ${statusClass}" style="font-size:12px; padding:5px 12px;">${t.status || 'Pending'}</span>
         </div>
 
-        ${actionSection}
+        <div class="detail-grid">
+          <div class="detail-item"><label>Nama Pemohon</label><div>${t.nama || '-'}</div></div>
+          <div class="detail-item"><label>Perusahaan / Dealer</label><div>${t.perusahaan || '-'}</div></div>
+          <div class="detail-item"><label>Email</label><div>${t.email || '-'}</div></div>
+          <div class="detail-item"><label>No. WhatsApp</label><div>${t.nowa || '-'}</div></div>
+          <div class="detail-item"><label>Kategori Perangkat</label><div>${t.kategori || '-'}</div></div>
+          <div class="detail-item"><label>Tipe / Model Unit</label><div>${t.tipe_unit || '-'}</div></div>
+          <div class="detail-item"><label>Serial Number (SN)</label><div>${t.sn_unit || '-'}</div></div>
+          <div class="detail-item"><label>Tanggal Pengajuan</label><div>${t.created_at ? new Date(t.created_at).toLocaleString('id-ID') : '-'}</div></div>
+        </div>
+
+        <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; margin-bottom:20px;">
+          <label style="display:block; font-size:11px; color:#94a3b8; text-transform:uppercase; margin-bottom:5px;">Detail Kendala DOA</label>
+          <div style="font-size:14px; color:#e2e8f0; line-height:1.5;">${t.keluhan || '-'}</div>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn-approve" onclick="processAction('${t.no_tiket}', 'approve')">✔ Approve Klaim</button>
+          <button class="btn-reject" onclick="processAction('${t.no_tiket}', 'reject')">✖ Reject Klaim</button>
+        </div>
       `;
     }
 
-    async function handleAction(noTiket, action) {
-      const alasan = prompt(`Masukkan catatan untuk ${action}:`, action === 'APPROVED' ? 'Memenuhi syarat garansi DOA' : 'Cacat fisik / segel rusak');
-      if (alasan === null) return;
-
-      const alertBox = document.getElementById('actionAlert');
-      alertBox.className = "mx-6 mt-4 p-3 rounded-lg text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200";
-      alertBox.innerText = `⏳ Memproses status #${noTiket}...`;
-      alertBox.classList.remove('hidden');
+    async function processAction(noTiket, action) {
+      if (!confirm(`Apakah Anda yakin ingin ${action === 'approve' ? 'MENERIMA' : 'MENOLAK'} klaim ini?`)) return;
 
       try {
         const res = await fetch('/api/doa/action', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noTiket, action, alasan })
+          body: JSON.stringify({ noTiket, action })
         });
-
-        const result = await res.json();
-
-        if (result.success) {
-          alertBox.className = "mx-6 mt-4 p-3 rounded-lg text-xs font-semibold bg-green-50 text-green-800 border border-green-200";
-          alertBox.innerText = `🎉 Status #${noTiket} berhasil diubah menjadi ${action}!`;
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
           loadTickets();
         } else {
-          throw new Error(result.message);
+          alert(data.message || 'Gagal mengubah status.');
         }
       } catch (err) {
-        alertBox.className = "mx-6 mt-4 p-3 rounded-lg text-xs font-semibold bg-red-50 text-red-800 border border-red-200";
-        alertBox.innerText = `❌ Error: ${err.message}`;
+        alert('Terjadi kesalahan sistem.');
       }
     }
 
-    async function logoutAdmin() {
-      if (confirm("Apakah Anda yakin ingin keluar dari Admin Dashboard?")) {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/login.html';
-      }
+    async function logout() {
+      document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = '/login.html';
     }
+
+    // Auto load data saat awal dibuka
+    loadTickets();
   </script>
 </body>
 </html>
