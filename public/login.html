@@ -5,79 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Admin QC - ADVAN DOA</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 400px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    .logo { text-align: center; margin-bottom: 25px; }
-    .logo h2 { color: #38bdf8; font-size: 24px; font-weight: 700; letter-spacing: 1px; }
-    .logo p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; color: #cbd5e1; font-size: 14px; margin-bottom: 8px; }
-    input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 100%; max-width: 400px; padding: 35px 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-align: center; }
+    .header img { max-width: 130px; margin-bottom: 12px; }
+    .header h2 { color: #38bdf8; font-size: 20px; margin-bottom: 4px; }
+    .header p { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+    .alert { padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; display: none; text-align: center; }
+    .alert-danger { background: rgba(153, 27, 27, 0.4); border: 1px solid #ef4444; color: #fca5a5; }
+    .alert-success { background: rgba(22, 101, 52, 0.4); border: 1px solid #22c55e; color: #86efac; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; }
+    input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; outline: none; }
     input:focus { border-color: #38bdf8; }
-    button { width: 100%; padding: 12px; background: #0284c7; border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    button { width: 100%; padding: 13px; background: #0284c7; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; margin-top: 10px; }
     button:hover { background: #0369a1; }
-    .alert { padding: 10px; background: #991b1b; color: #fecaca; font-size: 13px; border-radius: 6px; margin-bottom: 15px; display: none; text-align: center; }
+    button:disabled { background: #475569; cursor: not-allowed; }
   </style>
 </head>
 <body>
-
-  <div class="card">
-    <div class="logo">
+  <div class="login-card">
+    <div class="header">
+      <img src="https://tse1.mm.bing.net/th/id/OIP.mm_sJjyH4Seg3Wq-nN9IYQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Logo ADVAN">
       <h2>ADVAN DOA</h2>
       <p>Portal Login Admin Quality Control</p>
     </div>
 
-    <div id="alertBox" class="alert"></div>
+    <div id="alertMsg" class="alert"></div>
 
     <form id="formLogin">
       <div class="form-group">
-        <label for="username">Username Admin</label>
+        <label>Username Admin</label>
         <input type="text" id="username" required placeholder="Masukkan username">
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
+        <label>Password</label>
         <input type="password" id="password" required placeholder="Masukkan password">
       </div>
-      <button type="submit" id="btnSubmit">Masuk Admin</button>
+      <button type="submit" id="btnLogin">Masuk Admin</button>
     </form>
   </div>
 
   <script>
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const alertBox = document.getElementById('alertBox');
-      const btn = document.getElementById('btnSubmit');
+      const alertMsg = document.getElementById('alertMsg');
+      const btnLogin = document.getElementById('btnLogin');
 
-      alertBox.style.display = 'none';
-      btn.innerText = 'Memverifikasi...';
-      btn.disabled = true;
-
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+      alertMsg.style.display = 'none';
+      alertMsg.className = 'alert';
+      btnLogin.innerText = 'Memverifikasi...';
+      btnLogin.disabled = true;
 
       try {
-        const res = await fetch('/api/admin/login', {
+        const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value.trim()
+          })
         });
 
-        const data = await res.json();
+        const result = await res.json();
 
-        if (data.success) {
-          localStorage.setItem('adminToken', data.username);
-          window.location.href = '/admin.html';
+        if (result.success) {
+          alertMsg.innerText = 'Login Berhasil! Membuka Dashboard...';
+          alertMsg.classList.add('alert-success');
+          alertMsg.style.display = 'block';
+          sessionStorage.setItem('adminLoggedIn', 'true');
+          setTimeout(() => { window.location.href = '/admin.html'; }, 500);
         } else {
-          alertBox.innerText = data.message;
-          alertBox.style.display = 'block';
+          throw new Error(result.message || 'Username atau password salah!');
         }
       } catch (err) {
-        alertBox.innerText = 'Gagal terhubung ke server.';
-        alertBox.style.display = 'block';
+        console.error(err);
+        alertMsg.innerText = err.message || 'Gagal terhubung ke server.';
+        alertMsg.classList.add('alert-danger');
+        alertMsg.style.display = 'block';
       } finally {
-        btn.innerText = 'Masuk Admin';
-        btn.disabled = false;
+        btnLogin.innerText = 'Masuk Admin';
+        btnLogin.disabled = false;
       }
     });
   </script>

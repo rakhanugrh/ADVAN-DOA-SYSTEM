@@ -7,8 +7,8 @@ const cloudinary = require('cloudinary').v2;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Config CORS fleksibel
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -25,7 +25,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 1. API: Cloudinary Signature (Upload Direct)
+// API Cloudinary Signature
 app.get('/api/doa/cloudinary-signature', (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
@@ -46,84 +46,63 @@ app.get('/api/doa/cloudinary-signature', (req, res) => {
       transformation
     });
   } catch (err) {
-    console.error('Signature Error:', err);
     res.status(500).json({ success: false, message: 'Gagal membuat signature Cloudinary' });
   }
 });
 
-// 2. API: Submit Tiket DOA
+// API Submit Tiket
 app.post('/api/doa/submit', async (req, res) => {
   try {
     const { nama, perusahaan, email, nowa, kota, alamat, kategori, tipeUnit, snUnit, keluhan, directFiles } = req.body;
-    
     const mediaFiles = directFiles ? JSON.parse(directFiles) : [];
     const noTiket = 'DOA-' + Date.now().toString().slice(-6);
 
     const { data, error } = await supabase
       .from('doa_tickets')
-      .insert([
-        {
-          no_tiket: noTiket,
-          nama,
-          perusahaan,
-          email,
-          nowa,
-          kota: kota || '',
-          alamat: alamat || '',
-          kategori,
-          tipe_unit: tipeUnit,
-          sn_unit: snUnit,
-          keluhan,
-          files: mediaFiles,
-          status: 'Pending',
-          created_at: new Date()
-        }
-      ])
-      .select();
+      .insert([{
+        no_tiket: noTiket,
+        nama,
+        perusahaan,
+        email,
+        nowa,
+        kota: kota || '',
+        alamat: alamat || '',
+        kategori,
+        tipe_unit: tipeUnit,
+        sn_unit: snUnit,
+        keluhan,
+        files: mediaFiles,
+        status: 'Pending',
+        created_at: new Date()
+      }]);
 
     if (error) throw error;
-
     res.json({ success: true, noTiket, message: 'Tiket berhasil dibuat!' });
   } catch (err) {
-    console.error('Submit Error:', err);
     res.status(500).json({ success: false, message: err.message || 'Gagal menyimpan tiket' });
   }
 });
 
 // Handler Login Tunggal
-const handleLogin = async (req, res) => {
+const handleLogin = (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password } = req.body || {};
 
-    // Hardcode fallback check untuk login admin/admin123
+    // Bypass login pasti berhasil untuk admin / admin123
     if (username === 'admin' && password === 'admin123') {
-      return res.json({ success: true, message: 'Login berhasil!' });
+      return res.status(200).json({ success: true, message: 'Login berhasil!' });
     }
 
-    // Cek ke Supabase jika ada user lain
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password)
-      .maybeSingle();
-
-    if (data) {
-      return res.json({ success: true, message: 'Login berhasil!' });
-    }
-
-    return res.json({ success: false, message: 'Username atau password salah!' });
+    return res.status(200).json({ success: false, message: 'Username atau password salah!' });
   } catch (err) {
-    console.error('Login Error:', err);
-    res.status(500).json({ success: false, message: 'Server error saat login' });
+    return res.status(500).json({ success: false, message: 'Server error saat login' });
   }
 };
 
-// 3. API: Login Admin (Mendukung kedua endpoint /api/login & /api/admin/login)
 app.post('/api/login', handleLogin);
 app.post('/api/admin/login', handleLogin);
 
-// 4. API: Ambil Semua Tiket (Untuk Admin Dashboard)
+// API Dashboard Admin
 app.get('/api/admin/tickets', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -134,18 +113,14 @@ app.get('/api/admin/tickets', async (req, res) => {
     if (error) throw error;
     res.json({ success: true, tickets: data });
   } catch (err) {
-    console.error('Get Tickets Error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Serve HTML Fallbacks
+// Serve HTML
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 module.exports = app;
