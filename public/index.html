@@ -30,7 +30,7 @@
     }
     
     .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 20px; }
-    .header img { max-width: 150px; height: auto; margin-bottom: 14px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+    .header img { max-width: 140px; height: auto; margin-bottom: 14px; display: block; margin-left: auto; margin-right: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
     .header h2 { color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
     .header p { color: #94a3b8; font-size: 13.5px; margin-top: 6px; }
     
@@ -40,23 +40,14 @@
     .form-group { margin-bottom: 22px; }
     label { display: block; font-size: 13.5px; color: #cbd5e1; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.2px; }
     
-    /* STYLE CARD MENYAMPING DENGAN EMOJI */
     .device-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
       gap: 10px;
     }
 
-    .device-card {
-      position: relative;
-    }
-
-    .device-card input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .device-card { position: relative; }
+    .device-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
 
     .device-box {
       display: flex;
@@ -72,16 +63,8 @@
       text-align: center;
     }
 
-    .device-box .icon {
-      font-size: 24px;
-      margin-bottom: 6px;
-    }
-
-    .device-box .title {
-      font-size: 12.5px;
-      color: #cbd5e1;
-      font-weight: 500;
-    }
+    .device-box .icon { font-size: 24px; margin-bottom: 6px; }
+    .device-box .title { font-size: 12.5px; color: #cbd5e1; font-weight: 500; }
 
     .device-card:hover .device-box {
       border-color: #38bdf8;
@@ -100,7 +83,6 @@
       font-weight: 700;
     }
 
-    /* INPUT REGULAR */
     input[type="text"], input[type="email"], select, textarea { 
       width: 100%; 
       padding: 13px 16px; 
@@ -124,7 +106,6 @@
     select { cursor: pointer; }
     select option { background-color: #0f172a; color: #ffffff; }
 
-    /* Custom File Input Styling */
     .file-input-wrapper {
       position: relative;
       background: rgba(15, 23, 42, 0.4);
@@ -137,10 +118,7 @@
     input[type="file"] { width: 100%; color: #94a3b8; cursor: pointer; font-size: 13px; }
     .file-hint { font-size: 12px; color: #64748b; margin-top: 6px; display: block; }
     
-    /* Fade In Animation */
-    .fade-in {
-      animation: fadeIn 0.35s ease-in-out forwards;
-    }
+    .fade-in { animation: fadeIn 0.35s ease-in-out forwards; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -172,7 +150,7 @@
 
   <div class="container">
     <div class="header">
-      <img src="/advan_logo1.png" alt="Logo ADVAN" onerror="this.onerror=null; this.src='/advan_logo1.png';">
+      <img src="https://tse1.mm.bing.net/th/id/OIP.mm_sJjyH4Seg3Wq-nN9IYQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Logo ADVAN">
       <h2>Formulir Pengajuan Klaim Garansi DOA</h2>
       <p>Sistem Pelayanan Garansi Dead on Arrival</p>
     </div>
@@ -200,7 +178,6 @@
         <input type="text" id="nowa" required placeholder="081234567890">
       </div>
 
-      <!-- KOLOM TAMBAHAN: KOTA & ALAMAT LENGKAP -->
       <div class="form-group">
         <label for="kota">Kota / Kabupaten *</label>
         <input type="text" id="kota" required placeholder="Contoh: Jakarta Barat / Surabaya">
@@ -211,7 +188,6 @@
         <textarea id="alamat" rows="3" required placeholder="Jln. Raya Utama No. 123, RT 01/RW 02, Kel. Palmerah..."></textarea>
       </div>
 
-      <!-- 1. JENIS PERANGKAT (MENYAMPING + EMOJI) -->
       <div class="form-group">
         <label>1. Pilih Jenis Perangkat Unit *</label>
         <div class="device-grid">
@@ -259,7 +235,6 @@
         </div>
       </div>
 
-      <!-- 2. VARIAN DETAIL BARANG (Dinamis Muncul) -->
       <div class="form-group" id="groupVariant" style="display: none;">
         <label for="variantBarang">2. Varian / Seri Detail Unit *</label>
         <select id="variantBarang" required>
@@ -272,13 +247,11 @@
         <input type="text" id="snUnit" required placeholder="Masukkan SN unit">
       </div>
 
-      <!-- DESKRIPSI KENDALA -->
       <div class="form-group">
         <label for="keluhan">Deskripsi Kendala / Keluhan *</label>
         <textarea id="keluhan" rows="4" required placeholder="Tuliskan detail kendala atau kerusakan fisik/fungsi unit saat diterima..."></textarea>
       </div>
 
-      <!-- UPLOAD FOTO -->
       <div class="form-group">
         <label for="fotoFiles">Lampiran Foto Bukti Kendala</label>
         <div class="file-input-wrapper">
@@ -287,7 +260,6 @@
         <span class="file-hint">* Format: JPG, PNG, WEBP (Bisa pilih beberapa foto).</span>
       </div>
 
-      <!-- UPLOAD VIDEO -->
       <div class="form-group">
         <label for="videoFiles">Lampiran Video Unboxing / Bukti Unit Mati</label>
         <div class="file-input-wrapper">
@@ -342,7 +314,7 @@
       const btnSubmit = document.getElementById('btnSubmit');
       
       if (alertError) alertError.style.display = 'none';
-      btnSubmit.innerText = 'Mengunggah Media & Memproses...';
+      btnSubmit.innerText = 'Memproses Pengajuan...';
       btnSubmit.disabled = true;
 
       try {
@@ -362,39 +334,43 @@
 
         const uploadedMedia = [];
 
+        // Try Upload ke Cloudinary (Aman jika Cloudinary Error / Disabled)
         if (filesToUpload.length > 0) {
-          const sigRes = await fetch('/api/doa/cloudinary-signature');
-          if (!sigRes.ok) throw new Error('Gagal mendapatkan token izin upload server.');
-          const sigData = await sigRes.json();
+          try {
+            const sigRes = await fetch('/api/doa/cloudinary-signature');
+            if (sigRes.ok) {
+              const sigData = await sigRes.json();
 
-          for (let i = 0; i < filesToUpload.length; i++) {
-            const file = filesToUpload[i];
-            const formData = new FormData();
-            
-            formData.append('file', file);
-            formData.append('api_key', sigData.api_key);
-            formData.append('timestamp', sigData.timestamp);
-            formData.append('signature', sigData.signature);
-            formData.append('folder', sigData.folder);
-            formData.append('transformation', sigData.transformation);
+              for (let i = 0; i < filesToUpload.length; i++) {
+                const file = filesToUpload[i];
+                const formData = new FormData();
+                
+                formData.append('file', file);
+                formData.append('api_key', sigData.api_key);
+                formData.append('timestamp', sigData.timestamp);
+                formData.append('signature', sigData.signature);
+                formData.append('folder', sigData.folder);
+                formData.append('transformation', sigData.transformation);
 
-            const cloudRes = await fetch(
-              `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/auto/upload`,
-              { method: 'POST', body: formData }
-            );
+                const cloudRes = await fetch(
+                  `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/auto/upload`,
+                  { method: 'POST', body: formData }
+                );
 
-            const cloudData = await cloudRes.json();
-            
-            if (cloudData.secure_url) {
-              uploadedMedia.push({
-                url: cloudData.secure_url,
-                public_id: cloudData.public_id,
-                resource_type: cloudData.resource_type,
-                created_at: new Date()
-              });
-            } else {
-              throw new Error('Gagal upload file ke cloud: ' + (cloudData.error?.message || 'Error tidak diketahui'));
+                const cloudData = await cloudRes.json();
+                
+                if (cloudData.secure_url) {
+                  uploadedMedia.push({
+                    url: cloudData.secure_url,
+                    public_id: cloudData.public_id,
+                    resource_type: cloudData.resource_type,
+                    created_at: new Date()
+                  });
+                }
+              }
             }
+          } catch (cloudErr) {
+            console.warn('Media upload diproses tanpa Cloudinary:', cloudErr);
           }
         }
 
@@ -430,7 +406,7 @@
       } catch (err) {
         console.error(err);
         if (alertError) {
-          alertError.innerText = 'KONEKSI ERROR!\n' + err.message;
+          alertError.innerText = 'GAGAL MENYIMPAN!\n' + err.message;
           alertError.style.display = 'block';
         }
       } finally {
