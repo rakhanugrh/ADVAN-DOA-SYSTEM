@@ -3,128 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Register Admin QC - ADVAN DOA</title>
+  <title>Login Admin QC - ADVAN DOA</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    
-    .login-card { background: #1e293b; width: 100%; max-width: 420px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); overflow: hidden; border: 1px solid #334155; }
-    
-    .header-banner { 
-      background: #ffffff; 
-      padding: 25px 20px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      border-bottom: 1px solid #334155;
-    }
-    .header-banner img { max-height: 50px; width: auto; display: block; }
-
-    .card-body { padding: 30px; }
-    
-    /* Tab Switcher */
-    .tab-group { display: flex; border-bottom: 1px solid #334155; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 10px; text-align: center; background: none; border: none; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent; }
-    .tab-btn.active { color: #38bdf8; border-color: #38bdf8; }
-
-    .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
-    .form-group input { 
-      width: 100%; 
-      padding: 12px 14px; 
-      background: #0f172a;
-      border: 1px solid #334155; 
-      border-radius: 8px; 
-      font-size: 14px; 
-      color: #f8fafc;
-      outline: none; 
-      transition: border-color 0.2s;
-    }
-    .form-group input:focus { border-color: #38bdf8; }
-
-    .btn-submit { 
-      width: 100%; 
-      padding: 12px; 
-      background: #2563eb; 
-      color: white; 
-      border: none; 
-      border-radius: 8px; 
-      font-weight: 600; 
-      font-size: 15px; 
-      cursor: pointer; 
-      margin-top: 10px; 
-      transition: background 0.2s;
-    }
-    .btn-submit:hover { background: #1d4ed8; }
-
-    .alert { padding: 12px; border-radius: 8px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
-    .alert-danger { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
-    .alert-success { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 400px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .logo { text-align: center; margin-bottom: 25px; }
+    .logo h2 { color: #38bdf8; font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+    .logo p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; color: #cbd5e1; font-size: 14px; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    button { width: 100%; padding: 12px; background: #0284c7; border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+    .alert { padding: 10px; background: #991b1b; color: #fecaca; font-size: 13px; border-radius: 6px; margin-bottom: 15px; display: none; text-align: center; }
   </style>
 </head>
 <body>
 
-  <div class="login-card">
-    <div class="header-banner">
-      <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan">
+  <div class="card">
+    <div class="logo">
+      <h2>ADVAN DOA</h2>
+      <p>Portal Login Admin Quality Control</p>
     </div>
 
-    <div class="card-body">
-      <div class="tab-group">
-        <button class="tab-btn active" onclick="switchTab('login')">Masuk Admin</button>
-        <button class="tab-btn" onclick="switchTab('register')">Buat Akun Baru</button>
+    <div id="alertBox" class="alert"></div>
+
+    <form id="formLogin">
+      <div class="form-group">
+        <label for="username">Username Admin</label>
+        <input type="text" id="username" required placeholder="Masukkan username">
       </div>
-
-      <div id="alertBox" class="alert"></div>
-
-      <!-- Form Login -->
-      <form id="loginForm">
-        <div class="form-group">
-          <label>Username Admin</label>
-          <input type="text" id="loginUsername" required placeholder="Masukkan username">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" required placeholder="Masukkan password">
-        </div>
-        <button type="submit" class="btn-submit" id="btnLogin">Masuk Ke Dashboard</button>
-      </form>
-
-      <!-- Form Register -->
-      <form id="registerForm" style="display: none;">
-        <div class="form-group">
-          <label>Username Baru</label>
-          <input type="text" id="regUsername" required placeholder="Buat username admin baru">
-        </div>
-        <div class="form-group">
-          <label>Password Baru</label>
-          <input type="password" id="regPassword" required placeholder="Buat password">
-        </div>
-        <button type="submit" class="btn-submit" id="btnRegister" style="background:#10b981;">Daftar Akun Admin</button>
-      </form>
-    </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Masukkan password">
+      </div>
+      <button type="submit" id="btnSubmit">Masuk Admin</button>
+    </form>
   </div>
 
   <script>
-    const alertBox = document.getElementById('alertBox');
-
-    function switchTab(type) {
-      alertBox.style.display = 'none';
-      const tabs = document.querySelectorAll('.tab-btn');
-      tabs[0].classList.toggle('active', type === 'login');
-      tabs[1].classList.toggle('active', type === 'register');
-      
-      document.getElementById('loginForm').style.display = type === 'login' ? 'block' : 'none';
-      document.getElementById('registerForm').style.display = type === 'register' ? 'block' : 'none';
-    }
-
-    // Handle Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
-      alertBox.style.display = 'none';
+      const alertBox = document.getElementById('alertBox');
+      const btn = document.getElementById('btnSubmit');
 
-      const username = document.getElementById('loginUsername').value;
-      const password = document.getElementById('loginPassword').value;
+      alertBox.style.display = 'none';
+      btn.innerText = 'Memverifikasi...';
+      btn.disabled = true;
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
       try {
         const res = await fetch('/api/admin/login', {
@@ -132,53 +62,23 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
+
         const data = await res.json();
 
         if (data.success) {
+          // Simpan session login sederhana di LocalStorage
+          localStorage.setItem('adminToken', data.username);
           window.location.href = '/admin.html';
         } else {
-          alertBox.className = 'alert alert-danger';
-          alertBox.innerText = data.message || 'Login gagal!';
-          alertBox.style.display = 'block';
-        }
-      } catch (err) {
-        alertBox.className = 'alert alert-danger';
-        alertBox.innerText = 'Terjadi kesalahan sistem.';
-        alertBox.style.display = 'block';
-      }
-    });
-
-    // Handle Register
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      alertBox.style.display = 'none';
-
-      const username = document.getElementById('regUsername').value;
-      const password = document.getElementById('regPassword').value;
-
-      try {
-        const res = await fetch('/api/admin/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          alertBox.className = 'alert alert-success';
           alertBox.innerText = data.message;
           alertBox.style.display = 'block';
-          document.getElementById('registerForm').reset();
-          setTimeout(() => switchTab('login'), 1500);
-        } else {
-          alertBox.className = 'alert alert-danger';
-          alertBox.innerText = data.message || 'Gagal mendaftar!';
-          alertBox.style.display = 'block';
         }
       } catch (err) {
-        alertBox.className = 'alert alert-danger';
-        alertBox.innerText = 'Terjadi kesalahan sistem.';
+        alertBox.innerText = 'Gagal terhubung ke server.';
         alertBox.style.display = 'block';
+      } finally {
+        btn.innerText = 'Masuk Admin';
+        btn.disabled = false;
       }
     });
   </script>
