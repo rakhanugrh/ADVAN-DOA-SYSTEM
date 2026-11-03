@@ -9,7 +9,7 @@
     body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     .container { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 650px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
     .header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-    .header img { max-width: 150px; margin-bottom: 12px; }
+    .header img { max-width: 160px; height: auto; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; }
     .header h2 { color: #ffffff; font-size: 22px; font-weight: 700; }
     .header p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
     
@@ -32,7 +32,7 @@
 
   <div class="container">
     <div class="header">
-      <h2 style="color: #e11d48; letter-spacing: 2px;">ADVAN</h2>
+      <img src="/advan_logo1.png" alt="Logo ADVAN" onerror="this.onerror=null; this.src='/images/advan_logo1.png';">
       <h2>Formulir Pengajuan Klaim Garansi DOA</h2>
       <p>Sistem Pelayanan Garansi Dead on Arrival</p>
     </div>
@@ -114,9 +114,7 @@
         const files = fileInput ? fileInput.files : [];
         const uploadedMedia = [];
 
-        // 1. Upload Langsung dari Browser ke Cloudinary jika ada file
         if (files.length > 0) {
-          // Minta Token Signature & Konfigurasi dari Server
           const sigRes = await fetch('/api/doa/cloudinary-signature');
           if (!sigRes.ok) throw new Error('Gagal mendapatkan token izin upload server.');
           const sigData = await sigRes.json();
@@ -130,9 +128,8 @@
             formData.append('timestamp', sigData.timestamp);
             formData.append('signature', sigData.signature);
             formData.append('folder', sigData.folder);
-            formData.append('transformation', sigData.transformation); // Auto-compress 720p
+            formData.append('transformation', sigData.transformation);
 
-            // Direct Upload ke Cloudinary API
             const cloudRes = await fetch(
               `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/auto/upload`,
               { method: 'POST', body: formData }
@@ -153,7 +150,6 @@
           }
         }
 
-        // 2. Kirim Metadata Form Teks & Link Media ke Backend/Supabase
         const payload = {
           nama: document.getElementById('nama').value,
           perusahaan: document.getElementById('perusahaan').value || '',
