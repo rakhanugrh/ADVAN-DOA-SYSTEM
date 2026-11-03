@@ -8,9 +8,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     .container { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 650px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    
     .header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-    .header img { max-width: 160px; height: auto; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; }
-    .header h2 { color: #ffffff; font-size: 22px; font-weight: 700; }
+    .logo-text { color: #e11d48; font-size: 28px; font-weight: 800; letter-spacing: 3px; margin-bottom: 8px; }
+    .header h2 { color: #ffffff; font-size: 20px; font-weight: 700; }
     .header p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
     
     .alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; display: none; text-align: center; line-height: 1.4; }
@@ -32,7 +33,7 @@
 
   <div class="container">
     <div class="header">
-      <img src="/advan_logo1.png" alt="Logo ADVAN" onerror="this.onerror=null; this.src='/images/advan_logo1.png';">
+      <div class="logo-text">ADVAN</div>
       <h2>Formulir Pengajuan Klaim Garansi DOA</h2>
       <p>Sistem Pelayanan Garansi Dead on Arrival</p>
     </div>
@@ -60,10 +61,24 @@
         <input type="text" id="nowa" required placeholder="081234567890">
       </div>
 
+      <!-- KATEGORI PERANGKAT -->
       <div class="form-group">
-        <label for="kategori">Kategori Kendala *</label>
+        <label for="kategoriPerangkat">Pilih Kategori Perangkat Unit *</label>
+        <select id="kategoriPerangkat" required>
+          <option value="">-- Pilih Jenis Perangkat --</option>
+          <option value="Laptop">Laptop (Workplus / Workpro / Pixelwar / dll)</option>
+          <option value="Smartphone">Smartphone / HP (ADVAN Nasa / GX / dll)</option>
+          <option value="Tablet">Tablet (ADVAN Sketsa / Tab VX / Tab A8 / dll)</option>
+          <option value="PC AIO">PC All-in-One (AIO)</option>
+          <option value="Lainnya">Aksesoris / Perangkat Lainnya</option>
+        </select>
+      </div>
+
+      <!-- KATEGORI KENDALA -->
+      <div class="form-group">
+        <label for="kategori">Kategori Kendala DOA *</label>
         <select id="kategori" required>
-          <option value="">-- Pilih Kategori --</option>
+          <option value="">-- Pilih Kendala --</option>
           <option value="Mati Total">Mati Total (No Power)</option>
           <option value="Layar Pecah/Garis">Layar Pecah / Bergaris</option>
           <option value="Baterai Drop/Cembung">Baterai Drop / Cembung</option>
@@ -74,13 +89,13 @@
       </div>
 
       <div class="form-group">
-        <label for="tipeUnit">Tipe Unit *</label>
-        <input type="text" id="tipeUnit" required placeholder="Contoh: Laptop Workplus / Tablet VX">
+        <label for="tipeUnit">Tipe / Model Seri Unit *</label>
+        <input type="text" id="tipeUnit" required placeholder="Contoh: Workplus 14 / Tab VX Pro">
       </div>
 
       <div class="form-group">
         <label for="snUnit">Serial Number (SN) Unit *</label>
-        <input type="text" id="snUnit" required placeholder="Masukkan SN unit">
+        <input type="text" id="snUnit" required placeholder="Masukkan Serial Number unit">
       </div>
 
       <div class="form-group">
@@ -88,10 +103,18 @@
         <textarea id="keluhan" rows="4" required placeholder="Jelaskan detail kendala unit saat diterima..."></textarea>
       </div>
 
+      <!-- KOLOM FOTO (TERPISAH) -->
       <div class="form-group">
-        <label for="files">Lampiran Foto / Video Bukti Kendala</label>
-        <input type="file" id="files" multiple accept="image/*,video/*">
-        <p class="file-hint">* Video besar akan ter-compress dan diunggah langsung secara aman.</p>
+        <label for="fotoFiles">Lampiran Foto Bukti Kendala / Kelengkapan</label>
+        <input type="file" id="fotoFiles" multiple accept="image/*">
+        <p class="file-hint">* Format: JPG, PNG, WEBP (Bisa pilih lebih dari 1 foto).</p>
+      </div>
+
+      <!-- KOLOM VIDEO (TERPISAH) -->
+      <div class="form-group">
+        <label for="videoFiles">Lampiran Video Bukti Kendala (Unboxing / Unit Mati)</label>
+        <input type="file" id="videoFiles" accept="video/*">
+        <p class="file-hint">* Format: MP4, MOV, AVI (Otomatis ter-compress & upload langsung).</p>
       </div>
 
       <button type="submit" id="btnSubmit">Kirim Pengajuan Klaim</button>
@@ -99,6 +122,8 @@
   </div>
 
   <script>
+    window.scrollTo(0, 0);
+
     document.getElementById('formDOA').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -110,17 +135,27 @@
       btnSubmit.disabled = true;
 
       try {
-        const fileInput = document.getElementById('files');
-        const files = fileInput ? fileInput.files : [];
+        const fotoInput = document.getElementById('fotoFiles');
+        const videoInput = document.getElementById('videoFiles');
+        
+        const filesToUpload = [];
+        if (fotoInput && fotoInput.files) {
+          for (let f of fotoInput.files) filesToUpload.push(f);
+        }
+        if (videoInput && videoInput.files) {
+          for (let v of videoInput.files) filesToUpload.push(v);
+        }
+
         const uploadedMedia = [];
 
-        if (files.length > 0) {
+        // Upload Direct Signed Upload ke Cloudinary
+        if (filesToUpload.length > 0) {
           const sigRes = await fetch('/api/doa/cloudinary-signature');
           if (!sigRes.ok) throw new Error('Gagal mendapatkan token izin upload server.');
           const sigData = await sigRes.json();
 
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+          for (let i = 0; i < filesToUpload.length; i++) {
+            const file = filesToUpload[i];
             const formData = new FormData();
             
             formData.append('file', file);
@@ -145,7 +180,7 @@
                 created_at: new Date()
               });
             } else {
-              throw new Error('Gagal upload ke cloud storage: ' + (cloudData.error?.message || 'Unknown error'));
+              throw new Error('Gagal upload file ke cloud: ' + (cloudData.error?.message || 'Error tidak diketahui'));
             }
           }
         }
@@ -155,6 +190,7 @@
           perusahaan: document.getElementById('perusahaan').value || '',
           email: document.getElementById('email').value,
           nowa: document.getElementById('nowa').value,
+          kategoriPerangkat: document.getElementById('kategoriPerangkat').value,
           kategori: document.getElementById('kategori').value,
           tipeUnit: document.getElementById('tipeUnit').value,
           snUnit: document.getElementById('snUnit').value,
