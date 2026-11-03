@@ -66,7 +66,6 @@
         const data = await res.json();
 
         if (data.success) {
-          // Simpan session login sederhana di LocalStorage
           localStorage.setItem('adminToken', data.username);
           window.location.href = '/admin.html';
         } else {
