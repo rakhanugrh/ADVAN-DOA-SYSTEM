@@ -3,206 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pengajuan Klaim Garansi DOA - ADVAN</title>
+  <title>Formulir Pengajuan Klaim Garansi DOA - ADVAN</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-    .container { background: #1e293b; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); overflow: hidden; border: 1px solid #334155; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .container { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 650px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    .header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+    .header img { max-width: 150px; margin-bottom: 12px; }
+    .header h2 { color: #ffffff; font-size: 22px; font-weight: 700; }
+    .header p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
     
-    /* Header Banner Putih dengan Logo ADVAN */
-    .header-banner { 
-      background: #ffffff; 
-      padding: 25px 20px; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      border-bottom: 1px solid #334155;
-    }
-    .header-banner img { 
-      max-height: 65px; 
-      width: auto; 
-      display: block; 
-    }
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; display: none; text-align: center; line-height: 1.4; }
+    .alert-danger { background-color: #450a0a; border: 1px solid #991b1b; color: #fecaca; }
     
-    .content-body { padding: 30px; color: #f8fafc; }
-    .title-section { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
-    .title-section h1 { color: #f8fafc; font-size: 20px; margin-bottom: 5px; }
-    .title-section p { color: #94a3b8; font-size: 13px; }
-    
-    /* Form & Category Tabs */
     .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea { 
-      width: 100%; 
-      padding: 10px 12px; 
-      background: #0f172a; 
-      border: 1px solid #334155; 
-      border-radius: 6px; 
-      font-size: 14px; 
-      color: #f8fafc; 
-      outline: none; 
-    }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #38bdf8; }
-
-    .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; margin-bottom: 18px; }
-    .tab-btn { padding: 10px 6px; border: 1px solid #334155; background: #0f172a; border-radius: 8px; font-size: 13px; font-weight: 600; color: #94a3b8; cursor: pointer; text-align: center; transition: all 0.2s; }
-    .tab-btn.active { background: #dc2626; color: white; border-color: #dc2626; }
-
-    .note { font-size: 11px; color: #64748b; margin-top: 4px; }
-    .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 15px; margin-top: 10px; }
-    .btn-submit:hover { background: #1d4ed8; }
-    .alert { padding: 12px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; display: none; }
-    .alert-danger { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
-    .alert-success { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
+    label { display: block; font-size: 14px; color: #cbd5e1; margin-bottom: 6px; font-weight: 500; }
+    input[type="text"], input[type="email"], select, textarea { width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #ffffff; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: #38bdf8; }
+    input[type="file"] { width: 100%; padding: 10px; background-color: #0f172a; border: 1px dashed #334155; border-radius: 6px; color: #94a3b8; cursor: pointer; }
+    .file-hint { font-size: 12px; color: #64748b; margin-top: 4px; }
+    
+    button { width: 100%; padding: 14px; background-color: #0284c7; border: none; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin-top: 10px; }
+    button:hover { background-color: #0369a1; }
+    button:disabled { background-color: #475569; cursor: not-allowed; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Header Banner Putih -->
-    <div class="header-banner">
-      <img src="https://prolitenews.com/wp-content/uploads/2024/11/Logo_Advan_Indonesia.png" alt="Logo Advan">
+    <div class="header">
+      <h2 style="color: #e11d48; letter-spacing: 2px;">ADVAN</h2>
+      <h2>Formulir Pengajuan Klaim Garansi DOA</h2>
+      <p>Sistem Pelayanan Garansi Dead on Arrival</p>
     </div>
 
-    <div class="content-body">
-      <div class="title-section">
-        <h1>Formulir Pengajuan Klaim Garansi DOA</h1>
-        <p>Sistem Pelayanan Garansi Dead on Arrival</p>
+    <div id="alertError" class="alert alert-danger"></div>
+
+    <form id="formDOA">
+      <div class="form-group">
+        <label for="nama">Nama Lengkap *</label>
+        <input type="text" id="nama" required placeholder="Contoh: Rakha Nugraha">
       </div>
 
-      <div id="alertBox" class="alert"></div>
+      <div class="form-group">
+        <label for="perusahaan">Perusahaan / Dealer</label>
+        <input type="text" id="perusahaan" placeholder="Contoh: Erajaya / Toko Jaya">
+      </div>
 
-      <form id="doaForm" enctype="multipart/form-data">
-        <input type="hidden" name="kategori" id="kategoriInput" value="Smartphone">
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input type="email" id="email" required placeholder="nama@email.com">
+      </div>
 
-        <div class="form-group">
-          <label>Nama Lengkap *</label>
-          <input type="text" name="nama" required placeholder="Masukkan nama pemohon">
-        </div>
+      <div class="form-group">
+        <label for="nowa">No. WhatsApp *</label>
+        <input type="text" id="nowa" required placeholder="081234567890">
+      </div>
 
-        <div class="form-group">
-          <label>Perusahaan / Dealer</label>
-          <input type="text" name="perusahaan" placeholder="Nama toko / perusahaan (opsional)">
-        </div>
+      <div class="form-group">
+        <label for="kategori">Kategori Kendala *</label>
+        <select id="kategori" required>
+          <option value="">-- Pilih Kategori --</option>
+          <option value="Mati Total">Mati Total (No Power)</option>
+          <option value="Layar Pecah/Garis">Layar Pecah / Bergaris</option>
+          <option value="Baterai Drop/Cembung">Baterai Drop / Cembung</option>
+          <option value="Fisik Cacat">Fisik Cacat / Scratch</option>
+          <option value="Fungsi Hardware">Kerusakan Fungsi Hardware</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
 
-        <div class="form-group">
-          <label>Email *</label>
-          <input type="email" name="email" required placeholder="contoh@email.com">
-        </div>
+      <div class="form-group">
+        <label for="tipeUnit">Tipe Unit *</label>
+        <input type="text" id="tipeUnit" required placeholder="Contoh: Laptop Workplus / Tablet VX">
+      </div>
 
-        <div class="form-group">
-          <label>No. WhatsApp *</label>
-          <input type="tel" name="nowa" required placeholder="081234567890">
-        </div>
+      <div class="form-group">
+        <label for="snUnit">Serial Number (SN) Unit *</label>
+        <input type="text" id="snUnit" required placeholder="Masukkan SN unit">
+      </div>
 
-        <!-- Kategori Perangkat -->
-        <div class="form-group">
-          <label>Pilih Kategori Perangkat *</label>
-          <div class="category-tabs">
-            <div class="tab-btn active" onclick="selectCategory('Smartphone', this)">📱 Smartphone</div>
-            <div class="tab-btn" onclick="selectCategory('Tablet', this)">Tab</div>
-            <div class="tab-btn" onclick="selectCategory('Laptop', this)">💻 Laptop</div>
-            <div class="tab-btn" onclick="selectCategory('PC / AIO', this)">🖥️ PC / AIO</div>
-          </div>
-        </div>
+      <div class="form-group">
+        <label for="keluhan">Deskripsi Keluhan / Kendala *</label>
+        <textarea id="keluhan" rows="4" required placeholder="Jelaskan detail kendala unit saat diterima..."></textarea>
+      </div>
 
-        <div class="form-group">
-          <label id="labelModel">Pilih Model Spesifik Smartphone *</label>
-          <select name="tipeUnit" id="tipeUnitSelect" required>
-          </select>
-        </div>
+      <div class="form-group">
+        <label for="files">Lampiran Foto / Video Bukti Kendala</label>
+        <input type="file" id="files" multiple accept="image/*,video/*">
+        <p class="file-hint">* Video besar akan ter-compress dan diunggah langsung secara aman.</p>
+      </div>
 
-        <div class="form-group">
-          <label>Serial Number (SN) *</label>
-          <input type="text" name="snUnit" required placeholder="Masukkan SN unit">
-        </div>
-
-        <div class="form-group">
-          <label>Detail Kendala DOA *</label>
-          <textarea name="keluhan" required placeholder="Jelaskan detail kerusakan unit..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Upload Foto Bukti Fisik (Maksimal 5 foto) *</label>
-          <input type="file" name="files" multiple required accept="image/*">
-          <div class="note">* Tahan Ctrl / Shift untuk memilih hingga 5 foto.</div>
-        </div>
-
-        <div class="form-group">
-          <label>Upload Video Bukti Kendala / Unboxing (Opsional / Maks 4MB)</label>
-          <input type="file" name="files" accept="video/*">
-          <div class="note">* Format video: MP4, MOV, atau AVI.</div>
-        </div>
-
-        <button type="submit" class="btn-submit" id="btnSubmit">Kirim Pengajuan Klaim DOA</button>
-      </form>
-    </div>
+      <button type="submit" id="btnSubmit">Kirim Pengajuan Klaim</button>
+    </form>
   </div>
 
   <script>
-    const models = {
-      'Smartphone': ['Advan GX', 'Advan G9 Pro', 'Advan Nasa Plus', 'Lainnya'],
-      'Tablet': ['Advan Tab VX', 'Advan Sketsa 2', 'Advan Tab Belajar', 'Lainnya'],
-      'Laptop': ['Workpro (Intel i5)', 'Workplus (AMD Ryzen)', 'Soulmate', '360 Stylus', 'Lainnya'],
-      'PC / AIO': ['AIO One PC', 'AIO PC Series', 'Lainnya']
-    };
-
-    function selectCategory(cat, element) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      element.classList.add('active');
-      document.getElementById('kategoriInput').value = cat;
-      document.getElementById('labelModel').innerText = `Pilih Model Spesifik ${cat} *`;
-      
-      const select = document.getElementById('tipeUnitSelect');
-      select.innerHTML = '';
-      models[cat].forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.innerText = m;
-        select.appendChild(opt);
-      });
-    }
-
-    selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
-
-    const doaForm = document.getElementById('doaForm');
-    const alertBox = document.getElementById('alertBox');
-    const btnSubmit = document.getElementById('btnSubmit');
-
-    doaForm.addEventListener('submit', async (e) => {
+    document.getElementById('formDOA').addEventListener('submit', async (e) => {
       e.preventDefault();
-      alertBox.style.display = 'none';
-      btnSubmit.innerText = 'Mengirim Data...';
+
+      const alertError = document.getElementById('alertError');
+      const btnSubmit = document.getElementById('btnSubmit');
+      
+      if (alertError) alertError.style.display = 'none';
+      btnSubmit.innerText = 'Mengunggah Media & Memproses...';
       btnSubmit.disabled = true;
 
-      const formData = new FormData(doaForm);
-
       try {
-        const response = await fetch('/api/doa/submit', {
+        const fileInput = document.getElementById('files');
+        const files = fileInput ? fileInput.files : [];
+        const uploadedMedia = [];
+
+        // 1. Upload Langsung dari Browser ke Cloudinary jika ada file
+        if (files.length > 0) {
+          // Minta Token Signature & Konfigurasi dari Server
+          const sigRes = await fetch('/api/doa/cloudinary-signature');
+          if (!sigRes.ok) throw new Error('Gagal mendapatkan token izin upload server.');
+          const sigData = await sigRes.json();
+
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const formData = new FormData();
+            
+            formData.append('file', file);
+            formData.append('api_key', sigData.api_key);
+            formData.append('timestamp', sigData.timestamp);
+            formData.append('signature', sigData.signature);
+            formData.append('folder', sigData.folder);
+            formData.append('transformation', sigData.transformation); // Auto-compress 720p
+
+            // Direct Upload ke Cloudinary API
+            const cloudRes = await fetch(
+              `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/auto/upload`,
+              { method: 'POST', body: formData }
+            );
+
+            const cloudData = await cloudRes.json();
+            
+            if (cloudData.secure_url) {
+              uploadedMedia.push({
+                url: cloudData.secure_url,
+                public_id: cloudData.public_id,
+                resource_type: cloudData.resource_type,
+                created_at: new Date()
+              });
+            } else {
+              throw new Error('Gagal upload ke cloud storage: ' + (cloudData.error?.message || 'Unknown error'));
+            }
+          }
+        }
+
+        // 2. Kirim Metadata Form Teks & Link Media ke Backend/Supabase
+        const payload = {
+          nama: document.getElementById('nama').value,
+          perusahaan: document.getElementById('perusahaan').value || '',
+          email: document.getElementById('email').value,
+          nowa: document.getElementById('nowa').value,
+          kategori: document.getElementById('kategori').value,
+          tipeUnit: document.getElementById('tipeUnit').value,
+          snUnit: document.getElementById('snUnit').value,
+          keluhan: document.getElementById('keluhan').value,
+          directFiles: JSON.stringify(uploadedMedia)
+        };
+
+        const submitRes = await fetch('/api/doa/submit', {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        const result = await submitRes.json();
 
-        if (data.success) {
-          alertBox.className = 'alert alert-success';
-          alertBox.innerHTML = `<b>Berhasil!</b> ${data.message}<br>Nomor Tiket Anda: <b>${data.noTiket}</b>`;
-          alertBox.style.display = 'block';
-          doaForm.reset();
-          selectCategory('Smartphone', document.querySelectorAll('.tab-btn')[0]);
+        if (result.success) {
+          alert(`🎉 Pengajuan Berhasil!\nNomor Tiket Garansi Anda: ${result.noTiket}`);
+          window.location.reload();
         } else {
-          alertBox.className = 'alert alert-danger';
-          alertBox.innerText = data.message || 'Gagal mengirim pengajuan.';
-          alertBox.style.display = 'block';
+          throw new Error(result.message);
         }
+
       } catch (err) {
-        alertBox.className = 'alert alert-danger';
-        alertBox.innerHTML = '<b>KONEKSI ERROR!</b><br>Tidak dapat terhubung ke server atau ukuran file terlalu besar.';
-        alertBox.style.display = 'block';
+        console.error(err);
+        if (alertError) {
+          alertError.innerText = 'KONEKSI ERROR!\n' + err.message;
+          alertError.style.display = 'block';
+        }
       } finally {
-        btnSubmit.innerText = 'Kirim Pengajuan Klaim DOA';
+        btnSubmit.innerText = 'Kirim Pengajuan Klaim';
         btnSubmit.disabled = false;
       }
     });
