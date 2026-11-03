@@ -200,6 +200,17 @@
         <input type="text" id="nowa" required placeholder="081234567890">
       </div>
 
+      <!-- KOLOM TAMBAHAN: KOTA & ALAMAT LENGKAP -->
+      <div class="form-group">
+        <label for="kota">Kota / Kabupaten *</label>
+        <input type="text" id="kota" required placeholder="Contoh: Jakarta Barat / Surabaya">
+      </div>
+
+      <div class="form-group">
+        <label for="alamat">Alamat Lengkap Pengiriman *</label>
+        <textarea id="alamat" rows="3" required placeholder="Jln. Raya Utama No. 123, RT 01/RW 02, Kel. Palmerah..."></textarea>
+      </div>
+
       <!-- 1. JENIS PERANGKAT (MENYAMPING + EMOJI) -->
       <div class="form-group">
         <label>1. Pilih Jenis Perangkat Unit *</label>
@@ -290,7 +301,6 @@
   </div>
 
   <script>
-    // Master data varian berdasarkan jenis perangkat
     const variantData = {
       Laptop: ['ADVAN Workplus', 'ADVAN Workpro', 'ADVAN Pixelwar', 'ADVAN AI Gen', 'ADVAN Soulmate', 'Laptop Seri Lainnya'],
       Smartphone: ['ADVAN Nasa Pro', 'ADVAN GX', 'ADVAN G9 Pro', 'Smartphone Seri Lainnya'],
@@ -302,7 +312,6 @@
     const groupVariant = document.getElementById('groupVariant');
     const variantSelect = document.getElementById('variantBarang');
 
-    // Event Listener Radio Button Menyamping
     document.querySelectorAll('input[name="jenisBarang"]').forEach(radio => {
       radio.addEventListener('change', function() {
         const selectedJenis = this.value;
@@ -326,7 +335,6 @@
       });
     });
 
-    // Form Submit Handler
     document.getElementById('formDOA').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -354,7 +362,6 @@
 
         const uploadedMedia = [];
 
-        // Direct Signed Upload ke Cloudinary
         if (filesToUpload.length > 0) {
           const sigRes = await fetch('/api/doa/cloudinary-signature');
           if (!sigRes.ok) throw new Error('Gagal mendapatkan token izin upload server.');
@@ -396,6 +403,8 @@
           perusahaan: document.getElementById('perusahaan').value || '',
           email: document.getElementById('email').value,
           nowa: document.getElementById('nowa').value,
+          kota: document.getElementById('kota').value,
+          alamat: document.getElementById('alamat').value,
           kategori: selectedRadio.value, 
           tipeUnit: document.getElementById('variantBarang').value, 
           snUnit: document.getElementById('snUnit').value,
