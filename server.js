@@ -90,17 +90,17 @@ app.post('/api/doa/submit', async (req, res) => {
   }
 });
 
-// 3. API: Login Admin (AUTO-BYPASS & DB CHECK)
-app.post('/api/login', async (req, res) => {
+// Handler Login Tunggal
+const handleLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Hardcode fallback check untuk memastikan SELALU bisa login admin/admin123
+    // Hardcode fallback check untuk login admin/admin123
     if (username === 'admin' && password === 'admin123') {
       return res.json({ success: true, message: 'Login berhasil!' });
     }
 
-    // Cek fallback kedua ke Supabase
+    // Cek ke Supabase jika ada user lain
     const { data, error } = await supabase
       .from('admin_users')
       .select('*')
@@ -117,7 +117,11 @@ app.post('/api/login', async (req, res) => {
     console.error('Login Error:', err);
     res.status(500).json({ success: false, message: 'Server error saat login' });
   }
-});
+};
+
+// 3. API: Login Admin (Mendukung kedua endpoint /api/login & /api/admin/login)
+app.post('/api/login', handleLogin);
+app.post('/api/admin/login', handleLogin);
 
 // 4. API: Ambil Semua Tiket (Untuk Admin Dashboard)
 app.get('/api/admin/tickets', async (req, res) => {
