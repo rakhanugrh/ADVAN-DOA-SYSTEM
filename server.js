@@ -18,7 +18,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://YOUR_SUPABASE_PROJECT.
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_ANON_KEY';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Cloudinary Configuration (Root Key)
+// Cloudinary Configuration (Root Key Kamu)
 cloudinary.config({
   cloud_name: 'nb1uorww',
   api_key: '478548514282719',
@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }
+  limits: { fileSize: 100 * 1024 * 1024 } // Limit 100MB per file
 });
 
 // Middleware
@@ -52,10 +52,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 2. HELPER FUNCTIONS
 // ==========================================
 
+// Helper Upload Stream ke Cloudinary + AUTO COMPRESSION
 const uploadToCloudinary = (fileBuffer, folderName) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: folderName, resource_type: 'auto' },
+      {
+        folder: folderName,
+        resource_type: 'auto',
+        // Fitur Kompresi Otomatis Cloudinary
+        transformation: [
+          { quality: 'auto:good', fetch_format: 'mp4' }, // Auto-compress mutu & format video/foto
+          { width: 1280, height: 720, crop: 'limit' }    // Batasi resolusi maksimal 720p (hemat size hingga 70%)
+        ]
+      },
       (error, result) => {
         if (error) return reject(error);
         resolve(result);
@@ -65,6 +74,55 @@ const uploadToCloudinary = (fileBuffer, folderName) => {
   });
 };
 
+// Helper Template Email Pengajuan Baru
+const generateSubmitEmailHTML = (noTiket, body) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: #ffffff; margin: 0 auto; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .header { background-color: #0f172a; padding: 25px; text-align: center; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; }
+        .ticket-badge { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+        .detail-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0; }
+        .detail-row { padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-size: 14px; }
+        .footer { background-color: #f1f5f9; text-align: center; padding: 15px; font-size: 12px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2 style="color: #ffffff; margin:0;">ADVAN GARANSI DOA</h2>
+        </div>
+        <div class="content">
+          <h2>Halo, ${body.nama}! 👋</h2>
+          <p>Terima kasih telah mengajukan klaim garansi <b>Dead on Arrival (DOA)</b>. Pengajuan Anda telah kami terima dan sedang diproses oleh tim Quality Control (QC).</p>
+          
+          <div class="detail-box">
+            <div class="detail-row"><b>Nomor Tiket:</b> <span class="ticket-badge">${noTiket}</span></div>
+            <div class="detail-row"><b>Perusahaan/Toko:</b> ${body.perusahaan || '-'}</div>
+            <div class="detail-row"><b>Tipe Unit:</b> ${body.tipeUnit}</div>
+            <div class="detail-row"><b>Serial Number (SN):</b> ${body.snUnit}</div>
+            <div class="detail-row"><b>Kategori Kendala:</b> ${body.kategori}</div>
+          </div>
+
+          <p><b>Keluhan yang Dilaporkan:</b><br><i>"${body.keluhan}"</i></p>
+
+          <p>Tim kami akan melakukan verifikasi fisik dan fungsional unit. Update status akan kami kirimkan ke email ini secara berkala.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 ADVAN Indonesia - Service Center & Quality Control
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Helper Parser CSV Sederhana
 const parseCSV = (bufferText) => {
   const lines = bufferText.split(/\r?\n/).filter(line => line.trim() !== '');
   if (lines.length < 2) return [];
@@ -111,12 +169,37 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
+// Endpoint Token Signature untuk Direct Upload File Besar ke Cloudinary
+app.get('/api/doa/cloudinary-signature', (req, res) => {
+  const timestamp = Math.round(new Date().getTime() / 1000);
+  const folder = 'advan-doa/large-videos';
+
+  const signature = cloudinary.utils.api_sign_request(
+    {
+      timestamp: timestamp,
+      folder: folder,
+      transformation: 'q_auto:good,f_mp4,w_1280,h_720,c_limit' // Sertakan kompresi di signature
+    },
+    cloudinary.config().api_secret
+  );
+
+  res.json({
+    signature,
+    timestamp,
+    cloud_name: cloudinary.config().cloud_name,
+    api_key: cloudinary.config().api_key,
+    folder,
+    transformation: 'q_auto:good,f_mp4,w_1280,h_720,c_limit'
+  });
+});
+
 // Endpoint Submit Form Klaim DOA
 app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
   try {
     const noTiket = 'DOA-' + Date.now();
     const fileUrls = [];
 
+    // Upload via Server Buffer jika ada file foto/video standard
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const cloudResult = await uploadToCloudinary(file.buffer, `advan-doa/${noTiket}`);
@@ -127,6 +210,12 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
           created_at: new Date()
         });
       }
+    }
+
+    // Jika ada file video hasil Direct Upload dari Frontend
+    if (req.body.directFiles) {
+      const parsedDirect = JSON.parse(req.body.directFiles);
+      fileUrls.push(...parsedDirect);
     }
 
     const { error: dbError } = await supabase
@@ -147,8 +236,23 @@ app.post('/api/doa/submit', upload.array('files'), async (req, res) => {
 
     if (dbError) throw dbError;
 
+    // Kirim Email Konfirmasi
+    if (req.body.email) {
+      const mailOptions = {
+        from: `"Advan Service Center" <${SENDER_EMAIL}>`,
+        to: req.body.email,
+        subject: `[Klaim Garansi DOA] Tiket Berhasil Dibuat #${noTiket}`,
+        html: generateSubmitEmailHTML(noTiket, req.body)
+      };
+      
+      transporter.sendMail(mailOptions, (err) => {
+        if (err) console.error('Gagal mengirim email konfirmasi:', err);
+      });
+    }
+
     res.json({ success: true, message: 'Pengajuan tiket berhasil dikirim!', noTiket });
   } catch (err) {
+    console.error('Submit Error:', err);
     res.status(500).json({ success: false, message: 'Gagal memproses pengajuan: ' + err.message });
   }
 });
@@ -170,7 +274,7 @@ app.get('/api/doa/tickets', async (req, res) => {
 
 // Endpoint Action Status
 app.post('/api/doa/action', async (req, res) => {
-  const { noTiket, statusBaru } = req.body;
+  const { noTiket, statusBaru, emailUser, namaUser } = req.body;
 
   try {
     const { error } = await supabase
@@ -179,6 +283,25 @@ app.post('/api/doa/action', async (req, res) => {
       .eq('no_tiket', noTiket);
 
     if (error) throw error;
+
+    if (emailUser) {
+      const isApproved = statusBaru === 'Approved';
+      const mailOptions = {
+        from: `"Advan Service Center" <${SENDER_EMAIL}>`,
+        to: emailUser,
+        subject: `[Update Status DOA] Tiket #${noTiket} - ${statusBaru}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h3>Halo, ${namaUser}</h3>
+            <p>Pengajuan Garansi DOA Anda dengan tiket <b>#${noTiket}</b> telah diperbarui.</p>
+            <p style="font-size: 16px;"><b>STATUS: <span style="color: ${isApproved ? 'green' : 'red'};">${statusBaru.toUpperCase()}</span></b></p>
+            <p>${isApproved ? 'Silakan lanjutkan pengiriman unit sesuai instruksi tim kami.' : 'Pengajuan Anda ditolak berdasarkan evaluasi tim QC.'}</p>
+          </div>
+        `
+      };
+      transporter.sendMail(mailOptions);
+    }
+
     res.json({ success: true, message: `Status tiket #${noTiket} berhasil diubah.` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -246,6 +369,7 @@ setInterval(async () => {
           }
         }
       }
+      console.log('✅ Pembersihan media lama selesai.');
     }
   } catch (err) {
     console.error('Auto cleanup error:', err);
