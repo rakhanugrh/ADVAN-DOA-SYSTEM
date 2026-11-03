@@ -18,7 +18,7 @@
     }
 
     .container { 
-      background: rgba(30, 41, 59, 0.7); 
+      background: rgba(30, 41, 59, 0.75); 
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -38,8 +38,69 @@
     .alert-danger { background: rgba(153, 27, 27, 0.3); border: 1px solid #ef4444; color: #fca5a5; }
     
     .form-group { margin-bottom: 22px; }
-    label { display: block; font-size: 13.5px; color: #cbd5e1; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.2px; }
+    label { display: block; font-size: 13.5px; color: #cbd5e1; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.2px; }
     
+    /* STYLE CARD MENYAMPING DENGAN EMOJI */
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .device-card {
+      position: relative;
+    }
+
+    .device-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .device-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: center;
+    }
+
+    .device-box .icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .device-box .title {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .device-card:hover .device-box {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .device-card input[type="radio"]:checked + .device-box {
+      border-color: #38bdf8;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(37, 99, 235, 0.3));
+      box-shadow: 0 0 0 2px #38bdf8, 0 4px 12px rgba(56, 189, 248, 0.2);
+    }
+
+    .device-card input[type="radio"]:checked + .device-box .title {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* INPUT REGULAR */
     input[type="text"], input[type="email"], select, textarea { 
       width: 100%; 
       padding: 13px 16px; 
@@ -76,7 +137,7 @@
     input[type="file"] { width: 100%; color: #94a3b8; cursor: pointer; font-size: 13px; }
     .file-hint { font-size: 12px; color: #64748b; margin-top: 6px; display: block; }
     
-    /* Dynamic Fade In Animation */
+    /* Fade In Animation */
     .fade-in {
       animation: fadeIn 0.35s ease-in-out forwards;
     }
@@ -139,20 +200,55 @@
         <input type="text" id="nowa" required placeholder="081234567890">
       </div>
 
-      <!-- 1. JENIS PERANGKAT -->
+      <!-- 1. JENIS PERANGKAT (MENYAMPING + EMOJI) -->
       <div class="form-group">
-        <label for="jenisBarang">1. Jenis Perangkat Unit *</label>
-        <select id="jenisBarang" required>
-          <option value="">-- Pilih Jenis Perangkat --</option>
-          <option value="Laptop">Laptop</option>
-          <option value="Smartphone">Smartphone (HP)</option>
-          <option value="Tablet">Tablet</option>
-          <option value="PC AIO">PC All-in-One (AIO)</option>
-          <option value="Lainnya">Lainnya / Aksesoris</option>
-        </select>
+        <label>1. Pilih Jenis Perangkat Unit *</label>
+        <div class="device-grid">
+          
+          <label class="device-card">
+            <input type="radio" name="jenisBarang" value="Laptop" required>
+            <div class="device-box">
+              <span class="icon">💻</span>
+              <span class="title">Laptop</span>
+            </div>
+          </label>
+
+          <label class="device-card">
+            <input type="radio" name="jenisBarang" value="Smartphone">
+            <div class="device-box">
+              <span class="icon">📱</span>
+              <span class="title">Smartphone</span>
+            </div>
+          </label>
+
+          <label class="device-card">
+            <input type="radio" name="jenisBarang" value="Tablet">
+            <div class="device-box">
+              <span class="icon">📲</span>
+              <span class="title">Tablet</span>
+            </div>
+          </label>
+
+          <label class="device-card">
+            <input type="radio" name="jenisBarang" value="PC AIO">
+            <div class="device-box">
+              <span class="icon">🖥️</span>
+              <span class="title">PC AIO</span>
+            </div>
+          </label>
+
+          <label class="device-card">
+            <input type="radio" name="jenisBarang" value="Lainnya">
+            <div class="device-box">
+              <span class="icon">🎧</span>
+              <span class="title">Lainnya</span>
+            </div>
+          </label>
+
+        </div>
       </div>
 
-      <!-- 2. VARIAN DETAIL BARANG (Dinamis - Muncul Setelah Memilih Jenis) -->
+      <!-- 2. VARIAN DETAIL BARANG (Dinamis Muncul) -->
       <div class="form-group" id="groupVariant" style="display: none;">
         <label for="variantBarang">2. Varian / Seri Detail Unit *</label>
         <select id="variantBarang" required>
@@ -165,7 +261,7 @@
         <input type="text" id="snUnit" required placeholder="Masukkan SN unit">
       </div>
 
-      <!-- DESKRIPSI KENDALA (BEBAS KETIK) -->
+      <!-- DESKRIPSI KENDALA -->
       <div class="form-group">
         <label for="keluhan">Deskripsi Kendala / Keluhan *</label>
         <textarea id="keluhan" rows="4" required placeholder="Tuliskan detail kendala atau kerusakan fisik/fungsi unit saat diterima..."></textarea>
@@ -177,7 +273,7 @@
         <div class="file-input-wrapper">
           <input type="file" id="fotoFiles" multiple accept="image/*">
         </div>
-        <span class="file-hint">* Format: JPG, PNG, WEBP (Bisa pilih beberapa foto sekaligus).</span>
+        <span class="file-hint">* Format: JPG, PNG, WEBP (Bisa pilih beberapa foto).</span>
       </div>
 
       <!-- UPLOAD VIDEO -->
@@ -203,36 +299,31 @@
       Lainnya: ['Aksesoris / Charger / Perangkat Lain']
     };
 
-    const jenisSelect = document.getElementById('jenisBarang');
     const groupVariant = document.getElementById('groupVariant');
     const variantSelect = document.getElementById('variantBarang');
 
-    // Listener Perubahan Jenis Perangkat
-    jenisSelect.addEventListener('change', function() {
-      const selectedJenis = this.value;
+    // Event Listener Radio Button Menyamping
+    document.querySelectorAll('input[name="jenisBarang"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const selectedJenis = this.value;
 
-      if (selectedJenis && variantData[selectedJenis]) {
-        // Reset Opsi Varian
-        variantSelect.innerHTML = '<option value="">-- Pilih Varian Seri --</option>';
-        
-        // Isi Varian Baru Sesuai Jenis
-        variantData[selectedJenis].forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item;
-          opt.textContent = item;
-          variantSelect.appendChild(opt);
-        });
+        if (selectedJenis && variantData[selectedJenis]) {
+          variantSelect.innerHTML = '<option value="">-- Pilih Varian Seri --</option>';
+          
+          variantData[selectedJenis].forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = item;
+            variantSelect.appendChild(opt);
+          });
 
-        // Tampilkan Kolom Varian Dengan Animasi Fade In
-        groupVariant.style.display = 'block';
-        groupVariant.classList.remove('fade-in');
-        void groupVariant.offsetWidth; // Trigger reflow
-        groupVariant.classList.add('fade-in');
-        variantSelect.required = true;
-      } else {
-        groupVariant.style.display = 'none';
-        variantSelect.required = false;
-      }
+          groupVariant.style.display = 'block';
+          groupVariant.classList.remove('fade-in');
+          void groupVariant.offsetWidth;
+          groupVariant.classList.add('fade-in');
+          variantSelect.required = true;
+        }
+      });
     });
 
     // Form Submit Handler
@@ -247,6 +338,9 @@
       btnSubmit.disabled = true;
 
       try {
+        const selectedRadio = document.querySelector('input[name="jenisBarang"]:checked');
+        if (!selectedRadio) throw new Error('Silakan pilih jenis perangkat terlebih dahulu.');
+
         const fotoInput = document.getElementById('fotoFiles');
         const videoInput = document.getElementById('videoFiles');
         
@@ -302,7 +396,7 @@
           perusahaan: document.getElementById('perusahaan').value || '',
           email: document.getElementById('email').value,
           nowa: document.getElementById('nowa').value,
-          kategori: document.getElementById('jenisBarang').value, 
+          kategori: selectedRadio.value, 
           tipeUnit: document.getElementById('variantBarang').value, 
           snUnit: document.getElementById('snUnit').value,
           keluhan: document.getElementById('keluhan').value, 
