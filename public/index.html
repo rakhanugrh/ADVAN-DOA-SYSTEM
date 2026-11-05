@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Formulir Pengajuan Klaim Garansi DOA - ADVAN</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: radial-gradient(circle at top left, #1e1b4b, #0f172a 50%, #020617); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px 15px; }
@@ -34,8 +35,6 @@
     .file-input-wrapper:hover { border-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
     input[type="file"] { width: 100%; color: #94a3b8; cursor: pointer; font-size: 13px; }
     .file-hint { font-size: 12px; color: #64748b; margin-top: 6px; display: block; }
-    .fade-in { animation: fadeIn 0.35s ease-in-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     button { width: 100%; padding: 15px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; border-radius: 10px; color: #ffffff; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); margin-top: 10px; }
     button:hover { background: linear-gradient(135deg, #0369a1, #1d4ed8); box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6); transform: translateY(-1px); }
     button:disabled { background: #475569; box-shadow: none; cursor: not-allowed; transform: none; }
@@ -114,7 +113,15 @@
         <div class="file-input-wrapper">
           <input type="file" id="fotoFiles" multiple accept="image/*">
         </div>
-        <span class="file-hint">* Maksimal 2 foto (otomatis dikompres).</span>
+        <span class="file-hint">* Format: JPG, PNG, WEBP (Disimpan ke Supabase Storage).</span>
+      </div>
+
+      <div class="form-group">
+        <label for="videoFiles">Lampiran Video Unboxing / Bukti Unit Mati</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="videoFiles" accept="video/*">
+        </div>
+        <span class="file-hint">* Format: MP4, MOV, AVI (Disimpan ke Cloudinary Cloud).</span>
       </div>
 
       <button type="submit" id="btnSubmit">Kirim Pengajuan Klaim</button>
@@ -122,6 +129,10 @@
   </div>
 
   <script>
+    const SUPABASE_URL = 'https://ncmixiohzzvqbupigvlo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const variantData = {
       Laptop: ['ADVAN Workplus', 'ADVAN Workpro', 'ADVAN Pixelwar', 'ADVAN AI Gen', 'ADVAN Soulmate', 'Laptop Seri Lainnya'],
       Smartphone: ['ADVAN Nasa Pro', 'ADVAN GX', 'ADVAN G9 Pro', 'Smartphone Seri Lainnya'],
@@ -150,33 +161,31 @@
       });
     });
 
-    // Helper Kompresi Foto ke Base64 (max 800px)
-    const compressImage = (file) => new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 800;
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
-        };
-      };
-    });
+    // 1. Upload Foto -> Supabase Storage
+    async function uploadFotoToSupabase(file) {
+      const ext = file.name.split('.').pop();
+      const filePath = `photos/${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
+      const { data, error } = await supabaseClient.storage.from('doa-media').upload(filePath, file);
+      if (error) throw error;
+      const { data: publicUrlData } = supabaseClient.storage.from('doa-media').getPublicUrl(filePath);
+      return { url: publicUrlData.publicUrl, resource_type: 'image' };
+    }
+
+    // 2. Upload Video -> Cloudinary (Unsigned Preset)
+    async function uploadVideoToCloudinary(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'doa_video_preset');
+      formData.append('cloud_name', 'nb1uorww');
+
+      const cloudRes = await fetch('https://api.cloudinary.com/v1_1/nb1uorww/video/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const cloudData = await cloudRes.json();
+      if (!cloudRes.ok) throw new Error(cloudData.error?.message || 'Gagal unggah video ke Cloudinary');
+      return { url: cloudData.secure_url, resource_type: 'video' };
+    }
 
     document.getElementById('formDOA').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -184,7 +193,7 @@
       const btnSubmit = document.getElementById('btnSubmit');
       
       if (alertError) alertError.style.display = 'none';
-      btnSubmit.innerText = 'Mengompres Foto & Mengirim...';
+      btnSubmit.innerText = 'Mengunggah Media ke Cloud...';
       btnSubmit.disabled = true;
 
       try {
@@ -192,15 +201,24 @@
         if (!selectedRadio) throw new Error('Silakan pilih jenis perangkat.');
 
         const fotoInput = document.getElementById('fotoFiles');
+        const videoInput = document.getElementById('videoFiles');
         const uploadedMedia = [];
 
-        if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
-          const filesArr = Array.from(fotoInput.files).slice(0, 3); // Max 3 foto
-          for (let f of filesArr) {
-            const base64Data = await compressImage(f);
-            uploadedMedia.push({ url: base64Data, resource_type: 'image' });
+        // Prosess Foto via Supabase
+        if (fotoInput && fotoInput.files) {
+          for (let f of fotoInput.files) {
+            const media = await uploadFotoToSupabase(f);
+            uploadedMedia.push(media);
           }
         }
+
+        // Proses Video via Cloudinary
+        if (videoInput && videoInput.files && videoInput.files[0]) {
+          const media = await uploadVideoToCloudinary(videoInput.files[0]);
+          uploadedMedia.push(media);
+        }
+
+        btnSubmit.innerText = 'Menyimpan Pengajuan...';
 
         const payload = {
           nama: document.getElementById('nama').value,
@@ -234,7 +252,7 @@
       } catch (err) {
         console.error(err);
         if (alertError) {
-          alertError.innerText = 'GAGAL MENYIMPAN!\n' + err.message;
+          alertError.innerText = 'GAGAL MENYIMPAN!\n' + (err.message || 'Terjadi kesalahan sistem');
           alertError.style.display = 'block';
         }
       } finally {

@@ -7,39 +7,31 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
-    
     header { background: #1e293b; padding: 15px 30px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
     header h1 { font-size: 20px; color: #38bdf8; }
     header p { font-size: 12px; color: #94a3b8; }
-    
     .btn-logout { background: #ef4444; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
     .btn-logout:hover { background: #dc2626; }
-
     .main-container { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
-    
     .sidebar { width: 350px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; }
     .sidebar-header { padding: 15px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-    .sidebar-header h3 { font-size: 15px; color: #f8fafc; }
     .badge-count { background: #0284c7; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
-
     .ticket-list { overflow-y: auto; flex: 1; padding: 10px; }
     .ticket-item { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
     .ticket-item:hover, .ticket-item.active { border-color: #38bdf8; background: #1e293b; }
     .ticket-item h4 { font-size: 14px; color: #f8fafc; margin-bottom: 4px; }
     .ticket-item p { font-size: 12px; color: #94a3b8; margin-bottom: 2px; }
     .ticket-item .tag { display: inline-block; background: #334155; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 4px; }
-
     .content { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; overflow-y: auto; }
     .empty-state { text-align: center; color: #64748b; margin-top: 100px; }
-
     .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
     .detail-box { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; }
     .detail-box label { font-size: 11px; color: #64748b; display: block; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
     .detail-box span { font-size: 14px; color: #f8fafc; word-break: break-all; }
-
-    .media-container { margin-top: 15px; }
-    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
-    .media-grid img, .media-grid video { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; cursor: pointer; }
+    .media-container { margin-top: 20px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; }
+    .media-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+    .media-grid img { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 2px solid #38bdf8; cursor: pointer; }
+    .media-grid video { width: 300px; height: 170px; border-radius: 8px; border: 2px solid #0284c7; background: #000; }
   </style>
 </head>
 <body>
@@ -73,7 +65,6 @@
   <script>
     let ticketsData = [];
 
-    // Proteksi Sederhana Login
     if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
       window.location.href = '/login.html';
     }
@@ -87,7 +78,6 @@
       try {
         const res = await fetch('/api/admin/tickets');
         const result = await res.json();
-
         if (result.success) {
           ticketsData = result.tickets || [];
           renderTicketList();
@@ -100,7 +90,6 @@
     function renderTicketList() {
       const listEl = document.getElementById('ticketList');
       const countEl = document.getElementById('ticketCount');
-      
       countEl.innerText = ticketsData.length;
 
       if (ticketsData.length === 0) {
@@ -122,19 +111,24 @@
       const t = ticketsData[index];
       const detailEl = document.getElementById('detailContent');
 
-      const files = typeof t.files === 'string' ? JSON.parse(t.files || '[]') : (t.files || []);
+      let files = [];
+      try {
+        files = typeof t.files === 'string' ? JSON.parse(t.files) : (t.files || []);
+      } catch (e) {
+        files = [];
+      }
 
-      let mediaHtml = '';
+      let mediaHtml = '<p style="color:#64748b; font-size:13px;">Tidak ada media lampiran.</p>';
       if (files && files.length > 0) {
         mediaHtml = `
-          <div class="media-container">
-            <h4 style="font-size:13px; color:#cbd5e1; margin-bottom:8px;">Lampiran Media (${files.length})</h4>
-            <div class="media-grid">
-              ${files.map(f => f.resource_type === 'video' ? 
-                `<video src="${f.url}" controls></video>` : 
-                `<a href="${f.url}" target="_blank"><img src="${f.url}"></a>`
-              ).join('')}
-            </div>
+          <div class="media-grid">
+            ${files.map(f => {
+              if (f.resource_type === 'video') {
+                return `<video src="${f.url}" controls preload="metadata"></video>`;
+              } else {
+                return `<a href="${f.url}" target="_blank"><img src="${f.url}" title="Klik untuk lihat gambar penuh"></a>`;
+              }
+            }).join('')}
           </div>
         `;
       }
@@ -159,11 +153,13 @@
           <label>Keluhan / Kendala</label>
           <span>${t.keluhan || '-'}</span>
         </div>
-        ${mediaHtml}
+        <div class="media-container">
+          <label style="font-size:12px; color:#cbd5e1; font-weight:700;">LAMPIRAN FOTO (SUPABASE) & VIDEO (CLOUDINARY) (${files.length})</label>
+          ${mediaHtml}
+        </div>
       `;
     }
 
-    // Auto-sync refresh setiap 5 detik
     loadTickets();
     setInterval(loadTickets, 5000);
   </script>
