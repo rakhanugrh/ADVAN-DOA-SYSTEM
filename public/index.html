@@ -257,7 +257,7 @@
         <div class="file-input-wrapper">
           <input type="file" id="fotoFiles" multiple accept="image/*">
         </div>
-        <span class="file-hint">* Format: JPG, PNG, WEBP (Bisa pilih beberapa foto).</span>
+        <span class="file-hint">* Format: JPG, PNG, WEBP.</span>
       </div>
 
       <div class="form-group">
@@ -265,7 +265,7 @@
         <div class="file-input-wrapper">
           <input type="file" id="videoFiles" accept="video/*">
         </div>
-        <span class="file-hint">* Format: MP4, MOV, AVI (Video besar ter-compress otomatis).</span>
+        <span class="file-hint">* Format: MP4, MOV, AVI.</span>
       </div>
 
       <button type="submit" id="btnSubmit">Kirim Pengajuan Klaim</button>
@@ -307,6 +307,14 @@
       });
     });
 
+    // Helper konversi file ke Base64
+    const fileToBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+
     document.getElementById('formDOA').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -324,53 +332,29 @@
         const fotoInput = document.getElementById('fotoFiles');
         const videoInput = document.getElementById('videoFiles');
         
-        const filesToUpload = [];
-        if (fotoInput && fotoInput.files) {
-          for (let f of fotoInput.files) filesToUpload.push(f);
-        }
-        if (videoInput && videoInput.files) {
-          for (let v of videoInput.files) filesToUpload.push(v);
-        }
-
         const uploadedMedia = [];
 
-        // Try Upload ke Cloudinary (Aman jika Cloudinary Error / Disabled)
-        if (filesToUpload.length > 0) {
-          try {
-            const sigRes = await fetch('/api/doa/cloudinary-signature');
-            if (sigRes.ok) {
-              const sigData = await sigRes.json();
+        // Konversi foto ke Base64
+        if (fotoInput && fotoInput.files) {
+          for (let f of fotoInput.files) {
+            const base64Data = await fileToBase64(f);
+            uploadedMedia.push({
+              url: base64Data,
+              resource_type: 'image',
+              created_at: new Date()
+            });
+          }
+        }
 
-              for (let i = 0; i < filesToUpload.length; i++) {
-                const file = filesToUpload[i];
-                const formData = new FormData();
-                
-                formData.append('file', file);
-                formData.append('api_key', sigData.api_key);
-                formData.append('timestamp', sigData.timestamp);
-                formData.append('signature', sigData.signature);
-                formData.append('folder', sigData.folder);
-                formData.append('transformation', sigData.transformation);
-
-                const cloudRes = await fetch(
-                  `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/auto/upload`,
-                  { method: 'POST', body: formData }
-                );
-
-                const cloudData = await cloudRes.json();
-                
-                if (cloudData.secure_url) {
-                  uploadedMedia.push({
-                    url: cloudData.secure_url,
-                    public_id: cloudData.public_id,
-                    resource_type: cloudData.resource_type,
-                    created_at: new Date()
-                  });
-                }
-              }
-            }
-          } catch (cloudErr) {
-            console.warn('Media upload diproses tanpa Cloudinary:', cloudErr);
+        // Konversi video ke Base64
+        if (videoInput && videoInput.files) {
+          for (let v of videoInput.files) {
+            const base64Data = await fileToBase64(v);
+            uploadedMedia.push({
+              url: base64Data,
+              resource_type: 'video',
+              created_at: new Date()
+            });
           }
         }
 
