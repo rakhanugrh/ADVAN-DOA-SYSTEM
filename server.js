@@ -13,17 +13,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Supabase Safe Initialization
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
-let supabase = null;
+// Supabase Setup (Direct Fallback Credentials)
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ncmixiohzzvqbupigvlo.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_WU6JONEkQQInzX1-NiCQjg_MicYa1z1';
 
-if (SUPABASE_URL && SUPABASE_KEY) {
-  try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  } catch (e) {
-    console.error('Supabase Init Error:', e);
-  }
+let supabase = null;
+try {
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase initialized successfully');
+} catch (e) {
+  console.error('Supabase Init Error:', e);
 }
 
 // Cloudinary Safe Initialization
@@ -35,7 +34,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
   });
 }
 
-// 1. API Cloudinary Signature
+// 1. API: Cloudinary Signature
 app.get('/api/doa/cloudinary-signature', (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
@@ -60,10 +59,10 @@ app.get('/api/doa/cloudinary-signature', (req, res) => {
   }
 });
 
-// 2. API Submit Tiket
+// 2. API: Submit Tiket DOA
 app.post('/api/doa/submit', async (req, res) => {
   try {
-    if (!supabase) throw new Error('Database Supabase belum terkoneksi');
+    if (!supabase) throw new Error('Database Supabase belum terhubung');
 
     const { nama, perusahaan, email, nowa, kota, alamat, kategori, tipeUnit, snUnit, keluhan, directFiles } = req.body;
     const mediaFiles = directFiles ? JSON.parse(directFiles) : [];
@@ -74,7 +73,7 @@ app.post('/api/doa/submit', async (req, res) => {
       .insert([{
         no_tiket: noTiket,
         nama,
-        perusahaan,
+        perusahaan: perusahaan || '',
         email,
         nowa,
         kota: kota || '',
@@ -86,27 +85,30 @@ app.post('/api/doa/submit', async (req, res) => {
         files: mediaFiles,
         status: 'Pending',
         created_at: new Date()
-      }]);
+      }])
+      .select();
 
     if (error) throw error;
+
     res.json({ success: true, noTiket, message: 'Tiket berhasil dibuat!' });
   } catch (err) {
+    console.error('Submit API Error:', err);
     res.status(500).json({ success: false, message: err.message || 'Gagal menyimpan tiket' });
   }
 });
 
-// 3. API Login Handler (PASTI RESPON JSON 200 OK)
+// 3. API: Login Admin Handler
 const handleLogin = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
     const { username, password } = req.body || {};
 
-    // Bypass Utama: admin / admin123
+    // Bypass Utama Admin
     if (username === 'admin' && password === 'admin123') {
       return res.status(200).json({ success: true, message: 'Login berhasil!' });
     }
 
-    // Secondary DB Check
+    // DB Fallback Check jika ada user lain
     if (supabase) {
       const { data } = await supabase
         .from('admin_users')
@@ -130,10 +132,11 @@ const handleLogin = async (req, res) => {
 app.post('/api/login', handleLogin);
 app.post('/api/admin/login', handleLogin);
 
-// 4. API Dashboard Admin
+// 4. API: Ambil Semua Tiket (Untuk Admin Dashboard)
 app.get('/api/admin/tickets', async (req, res) => {
   try {
-    if (!supabase) throw new Error('Database tidak terkoneksi');
+    if (!supabase) throw new Error('Database Supabase belum terhubung');
+
     const { data, error } = await supabase
       .from('doa_tickets')
       .select('*')
@@ -142,14 +145,18 @@ app.get('/api/admin/tickets', async (req, res) => {
     if (error) throw error;
     res.json({ success: true, tickets: data });
   } catch (err) {
+    console.error('Get Tickets Error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Serve HTML
+// Serve HTML Static Pages
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 module.exports = app;
