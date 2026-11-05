@@ -6,59 +6,40 @@
   <title>Admin Dashboard QC DOA - ADVAN</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
     
-    /* Mengunci layar utama agar tidak ada scrollbar halaman */
-    html, body { height: 100vh; overflow: hidden; background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; }
-    
-    header { height: 65px; background: #1e293b; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; flex-shrink: 0; }
+    header { background: #1e293b; padding: 15px 30px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
     header h1 { font-size: 20px; color: #38bdf8; }
     header p { font-size: 12px; color: #94a3b8; }
-    .nav-btns { display: flex; gap: 10px; align-items: center; }
-    .status-live { font-size: 12px; color: #34d399; display: flex; align-items: center; gap: 6px; background: #065f4633; padding: 6px 12px; border-radius: 20px; border: 1px solid #059669; }
-    .dot { width: 8px; height: 8px; background: #34d399; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-    .btn-logout { background: #ef4444; color: white; }
-
-    /* Container mengambil sisa tinggi layar */
-    .main-container { display: flex; flex: 1; height: calc(100vh - 65px); padding: 20px; gap: 20px; overflow: hidden; }
     
-    /* Sidebar Terkunci (Independent Scroll) */
-    .sidebar { width: 320px; min-width: 320px; background: #1e293b; border-radius: 8px; padding: 15px; border: 1px solid #334155; height: 100%; overflow-y: auto; display: flex; flex-direction: column; }
-    .sidebar-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .badge-count { background: #334155; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .btn-logout { background: #ef4444; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-logout:hover { background: #dc2626; }
 
-    #ticketList { flex: 1; overflow-y: auto; padding-right: 4px; }
-
-    .ticket-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
-    .ticket-card:hover, .ticket-card.active { border-color: #38bdf8; background: #1e293b; }
-    .ticket-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; font-weight: bold; }
-    .ticket-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
-    .ticket-unit { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .main-container { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
     
-    .status-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-    .status-pending { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b; }
-    .status-approved { background: #10b98122; color: #34d399; border: 1px solid #10b981; }
-    .status-rejected { background: #ef444422; color: #f87171; border: 1px solid #ef4444; }
+    .sidebar { width: 350px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; }
+    .sidebar-header { padding: 15px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-header h3 { font-size: 15px; color: #f8fafc; }
+    .badge-count { background: #0284c7; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
 
-    /* Area Formulir Detail yang Bisa Di-scroll Sendiri */
-    .content-area { flex: 1; background: #1e293b; border-radius: 8px; padding: 25px; border: 1px solid #334155; height: 100%; overflow-y: auto; display: flex; flex-direction: column; }
-    .empty-state { margin: auto; text-align: center; color: #64748b; font-size: 14px; }
+    .ticket-list { overflow-y: auto; flex: 1; padding: 10px; }
+    .ticket-item { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+    .ticket-item:hover, .ticket-item.active { border-color: #38bdf8; background: #1e293b; }
+    .ticket-item h4 { font-size: 14px; color: #f8fafc; margin-bottom: 4px; }
+    .ticket-item p { font-size: 12px; color: #94a3b8; margin-bottom: 2px; }
+    .ticket-item .tag { display: inline-block; background: #334155; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 4px; }
 
-    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
-    .detail-item label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .detail-item div { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-top: 2px; }
+    .content { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; overflow-y: auto; }
+    .empty-state { text-align: center; color: #64748b; margin-top: 100px; }
 
-    .media-box { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px; }
-    .media-box label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
-    .media-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+    .detail-box { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; }
+    .detail-box label { font-size: 11px; color: #64748b; display: block; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+    .detail-box span { font-size: 14px; color: #f8fafc; word-break: break-all; }
 
-    .action-bar { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid #334155; }
-    .btn-approve { background: #10b981; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
-    .btn-reject { background: #ef4444; color: white; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
-    .btn-approve:hover { background: #059669; }
-    .btn-reject:hover { background: #dc2626; }
+    .media-container { margin-top: 15px; }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+    .media-grid img, .media-grid video { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -68,22 +49,21 @@
       <h1>Dashboard Approval QC DOA</h1>
       <p>Advan Service Center Internal Portal</p>
     </div>
-    <div class="nav-btns">
-      <div class="status-live"><div class="dot"></div> Auto Sync (5s)</div>
-      <button class="btn btn-logout" onclick="logout()">🚪 Logout</button>
-    </div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </header>
 
   <div class="main-container">
     <div class="sidebar">
-      <div class="sidebar-title">
-        <span>DAFTAR KLAIM</span>
+      <div class="sidebar-header">
+        <h3>DAFTAR KLAIM</h3>
         <span class="badge-count" id="ticketCount">0</span>
       </div>
-      <div id="ticketList"></div>
+      <div class="ticket-list" id="ticketList">
+        <div style="text-align:center; color:#64748b; padding:20px;">Memuat data...</div>
+      </div>
     </div>
 
-    <div class="content-area" id="contentArea">
+    <div class="content" id="detailContent">
       <div class="empty-state">
         👈 Pilih salah satu customer dari daftar di sebelah kiri untuk melihat detail klaim.
       </div>
@@ -92,157 +72,98 @@
 
   <script>
     let ticketsData = [];
-    let selectedTicketNo = null;
+
+    // Proteksi Sederhana Login
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = '/login.html';
+    }
+
+    function logout() {
+      sessionStorage.removeItem('adminLoggedIn');
+      window.location.href = '/login.html';
+    }
 
     async function loadTickets() {
       try {
-        const res = await fetch('/api/doa/tickets');
-        if (res.status === 401 || res.status === 403) {
-          window.location.href = '/login.html';
-          return;
-        }
-        const data = await res.json();
-        if (data.success) {
-          ticketsData = data.tickets || [];
+        const res = await fetch('/api/admin/tickets');
+        const result = await res.json();
+
+        if (result.success) {
+          ticketsData = result.tickets || [];
           renderTicketList();
-          if (selectedTicketNo) {
-            const current = ticketsData.find(t => t.no_tiket === selectedTicketNo);
-            if (current) renderDetail(current);
-          }
         }
       } catch (err) {
-        console.error('Gagal mengambil data:', err);
+        console.error('Error fetching tickets:', err);
       }
     }
 
     function renderTicketList() {
-      const listContainer = document.getElementById('ticketList');
-      document.getElementById('ticketCount').innerText = ticketsData.length;
-      listContainer.innerHTML = '';
+      const listEl = document.getElementById('ticketList');
+      const countEl = document.getElementById('ticketCount');
+      
+      countEl.innerText = ticketsData.length;
 
       if (ticketsData.length === 0) {
-        listContainer.innerHTML = '<div style="text-align:center; color:#64748b; font-size:12px; padding:20px;">Belum ada klaim masuk.</div>';
+        listEl.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">Belum ada klaim masuk.</div>';
         return;
       }
 
-      ticketsData.forEach(t => {
-        const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
-        
-        const card = document.createElement('div');
-        card.className = `ticket-card ${selectedTicketNo === t.no_tiket ? 'active' : ''}`;
-        card.onclick = () => {
-          selectedTicketNo = t.no_tiket;
-          renderTicketList();
-          renderDetail(t);
-        };
-
-        card.innerHTML = `
-          <div class="ticket-header">
-            <span>${t.no_tiket || '-'}</span>
-            <span class="status-badge ${statusClass}">${t.status || 'Pending'}</span>
-          </div>
-          <div class="ticket-name">${t.nama || 'Tanpa Nama'}</div>
-          <div class="ticket-unit">${t.kategori || ''} - ${t.tipe_unit || '-'}</div>
-        `;
-        listContainer.appendChild(card);
-      });
+      listEl.innerHTML = ticketsData.map((t, idx) => `
+        <div class="ticket-item" onclick="showDetail(${idx})">
+          <h4>${t.nama || 'Tanpa Nama'}</h4>
+          <p>SN: ${t.sn_unit || '-'}</p>
+          <p>Tipe: ${t.tipe_unit || '-'}</p>
+          <span class="tag">${t.no_tiket || 'DOA-000000'}</span>
+        </div>
+      `).join('');
     }
 
-    function renderDetail(t) {
-      const container = document.getElementById('contentArea');
-      const statusClass = t.status === 'Approved' ? 'status-approved' : (t.status === 'Rejected' ? 'status-rejected' : 'status-pending');
+    function showDetail(index) {
+      const t = ticketsData[index];
+      const detailEl = document.getElementById('detailContent');
 
-      let filesHtml = '<div style="font-size:13px; color:#64748b;">Tidak ada lampiran foto/video pada tiket ini.</div>';
-      
-      if (t.file_urls) {
-        try {
-          const files = typeof t.file_urls === 'string' ? JSON.parse(t.file_urls) : t.file_urls;
-          if (Array.isArray(files) && files.length > 0) {
-            filesHtml = '<div class="media-grid">';
-            files.forEach(f => {
-              if (f.type && f.type.includes('video')) {
-                filesHtml += `
-                  <div style="background:#0284c711; padding:10px; border-radius:8px; border:1px solid #334155; max-width:320px;">
-                    <video src="${f.url}" controls playsinline preload="auto" style="width:100%; max-height:200px; border-radius:6px; background:#000;"></video>
-                    <div style="margin-top:8px;">
-                      <a href="${f.url}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:#38bdf8; font-weight:bold; text-decoration:none;">↗ Buka Video Full Screen</a>
-                    </div>
-                  </div>`;
-              } else {
-                filesHtml += `
-                  <div>
-                    <a href="${f.url}" target="_blank" rel="noopener noreferrer">
-                      <img src="${f.url}" alt="Bukti DOA" style="max-width:180px; max-height:120px; border-radius:6px; border:1px solid #334155; object-fit:cover;">
-                    </a>
-                    <a href="${f.url}" target="_blank" rel="noopener noreferrer" style="display:block; font-size:11px; color:#38bdf8; margin-top:4px;">↗ Lihat Foto Full</a>
-                  </div>`;
-              }
-            });
-            filesHtml += '</div>';
-          }
-        } catch(e) {}
+      const files = typeof t.files === 'string' ? JSON.parse(t.files || '[]') : (t.files || []);
+
+      let mediaHtml = '';
+      if (files && files.length > 0) {
+        mediaHtml = `
+          <div class="media-container">
+            <h4 style="font-size:13px; color:#cbd5e1; margin-bottom:8px;">Lampiran Media (${files.length})</h4>
+            <div class="media-grid">
+              ${files.map(f => f.resource_type === 'video' ? 
+                `<video src="${f.url}" controls></video>` : 
+                `<a href="${f.url}" target="_blank"><img src="${f.url}"></a>`
+              ).join('')}
+            </div>
+          </div>
+        `;
       }
 
-      container.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-          <h2>Detail Tiket: ${t.no_tiket}</h2>
-          <span class="status-badge ${statusClass}" style="font-size:12px; padding:5px 12px;">${t.status || 'Pending'}</span>
-        </div>
-
+      detailEl.innerHTML = `
+        <h2 style="color:#38bdf8; font-size:18px; margin-bottom:20px;">Detail Tiket: ${t.no_tiket}</h2>
         <div class="detail-grid">
-          <div class="detail-item"><label>Nama Pemohon</label><div>${t.nama || '-'}</div></div>
-          <div class="detail-item"><label>Perusahaan / Dealer</label><div>${t.perusahaan || '-'}</div></div>
-          <div class="detail-item"><label>Email</label><div>${t.email || '-'}</div></div>
-          <div class="detail-item"><label>No. WhatsApp</label><div>${t.nowa || '-'}</div></div>
-          <div class="detail-item"><label>Kategori Perangkat</label><div>${t.kategori || '-'}</div></div>
-          <div class="detail-item"><label>Tipe / Model Unit</label><div>${t.tipe_unit || '-'}</div></div>
-          <div class="detail-item"><label>Serial Number (SN)</label><div>${t.sn_unit || '-'}</div></div>
-          <div class="detail-item"><label>Tanggal Pengajuan</label><div>${t.created_at ? new Date(t.created_at).toLocaleString('id-ID') : '-'}</div></div>
+          <div class="detail-box"><label>Nama Pelanggan</label><span>${t.nama || '-'}</span></div>
+          <div class="detail-box"><label>Perusahaan / Dealer</label><span>${t.perusahaan || '-'}</span></div>
+          <div class="detail-box"><label>Email</label><span>${t.email || '-'}</span></div>
+          <div class="detail-box"><label>No. WhatsApp</label><span>${t.nowa || '-'}</span></div>
+          <div class="detail-box"><label>Kota / Kabupaten</label><span>${t.kota || '-'}</span></div>
+          <div class="detail-box"><label>Jenis & Tipe Unit</label><span>${t.kategori || ''} - ${t.tipe_unit || ''}</span></div>
+          <div class="detail-box"><label>Serial Number (SN)</label><span>${t.sn_unit || '-'}</span></div>
+          <div class="detail-box"><label>Tanggal Pengajuan</label><span>${new Date(t.created_at).toLocaleString('id-ID')}</span></div>
         </div>
-
-        <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; margin-bottom:20px;">
-          <label style="display:block; font-size:11px; color:#94a3b8; text-transform:uppercase; margin-bottom:5px;">Detail Kendala DOA</label>
-          <div style="font-size:14px; color:#e2e8f0; line-height:1.5;">${t.keluhan || '-'}</div>
+        <div class="detail-box" style="margin-bottom:15px;">
+          <label>Alamat Pengiriman</label>
+          <span>${t.alamat || '-'}</span>
         </div>
-
-        <div class="media-box">
-          <label>Lampiran Bukti Foto / Video Kerusakan</label>
-          ${filesHtml}
+        <div class="detail-box" style="margin-bottom:15px;">
+          <label>Keluhan / Kendala</label>
+          <span>${t.keluhan || '-'}</span>
         </div>
-
-        <div class="action-bar">
-          <button class="btn-approve" onclick="processAction('${t.no_tiket}', 'approve')">✔ Approve Klaim</button>
-          <button class="btn-reject" onclick="processAction('${t.no_tiket}', 'reject')">✖ Reject Klaim</button>
-        </div>
+        ${mediaHtml}
       `;
     }
 
-    async function processAction(noTiket, action) {
-      if (!confirm(`Apakah Anda yakin ingin ${action === 'approve' ? 'MENERIMA' : 'MENOLAK'} klaim ini?`)) return;
-
-      try {
-        const res = await fetch('/api/doa/action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noTiket, action })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(data.message);
-          loadTickets();
-        } else {
-          alert(data.message || 'Gagal mengubah status.');
-        }
-      } catch (err) {
-        alert('Terjadi kesalahan sistem.');
-      }
-    }
-
-    async function logout() {
-      document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      window.location.href = '/login.html';
-    }
-
+    // Auto-sync refresh setiap 5 detik
     loadTickets();
     setInterval(loadTickets, 5000);
   </script>
